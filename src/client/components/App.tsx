@@ -6,6 +6,7 @@ import Header, { headerHeight } from 'components/Header'
 import Categories from 'components/Categories'
 import Menu from 'components/Menu'
 import Basket from 'components/Basket'
+import Ingredients from 'components/Ingredients'
 import background from 'images/background.jpg'
 import BasketProvider from 'state/basket/BasketProvider'
 import history from '../history'
@@ -55,6 +56,7 @@ const App = memo(() => {
 						</div>
 					</div>
 				</div>
+				<Ingredients />
 			</BasketProvider>
 		</Router>
 	)

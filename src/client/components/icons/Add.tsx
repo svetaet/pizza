@@ -2,27 +2,27 @@ import React from 'react'
 
 import themeColors from 'themeColors'
 
-const AddIcon = () => (
-	<svg viewBox="0 0 100 100" width="15px" height="15px">
+const Add = ({ size = 15 }) => (
+	<svg viewBox="0 0 10 10" width={`${size}px`} height={`${size}px`}>
 		<line
-			x1="50"
+			x1="5"
 			y1="0"
-			x2="50"
-			y2="100"
+			x2="5"
+			y2="10"
 			stroke={themeColors.weak}
-			strokeWidth="10"
+			strokeWidth="1"
 			strokeLinecap="round"
 		/>
 		<line
 			x1="0"
-			y1="50"
-			x2="100"
-			y2="50"
+			y1="5"
+			x2="10"
+			y2="5"
 			stroke={themeColors.weak}
-			strokeWidth="10"
+			strokeWidth="1"
 			strokeLinecap="round"
 		/>
 	</svg>
 )
 
-export default AddIcon
+export default Add

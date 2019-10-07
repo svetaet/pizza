@@ -16,7 +16,7 @@ export default {
 	cheddarjuusto: 'cheddarjuusto',
 	herkkusieni: 'herkkusieni',
 	rucola: 'rucola',
-	jalopeno: 'jalopeno',
+	jalapenos: 'jalapenos',
 	oliivi: 'oliivi',
 	maissi: 'maissi',
 	paprika: 'paprika',

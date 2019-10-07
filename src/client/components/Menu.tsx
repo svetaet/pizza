@@ -4,9 +4,9 @@ import { animated, useSpring } from '@react-spring/web'
 import { throttle } from '@rqm/tools'
 import { withContext } from '@rqm/react-tools'
 
+import { AddItemPayloadT } from 'state/basket/createActions'
 import basketContext from 'state/basket/basketContext'
-import AddIcon from 'components/AddIcon'
-import { BasketItemT } from 'components/Basket'
+import AddIcon from 'components/icons/Add'
 import menu, { MenuItemT, MenuCategoryT } from 'constants/menu'
 import styles from 'styles'
 import themeColors from 'themeColors'
@@ -134,16 +134,16 @@ const MenuItem: FC<MenuItemP> = ({
 type MenuItemsContainerP = {
 	n: number
 	glide: (categoryN: number, itemN: number) => void
-	addItem: (item: Omit<BasketItemT, 'id'>) => void
+	addItem: (item: AddItemPayloadT) => void
 } & MenuCategoryT
 const MenuItemsContainer = memo<MenuItemsContainerP>(
 	({ path, category, items, defaultVariants, glide, addItem, n }) => {
 		const hoverHandler = useCallback(itemN => glide(n, itemN), [glide, n])
 
-		const addItemWrap = useCallback<AddItemWrapT>(
-			item => addItem({ ...item, category: category }),
-			[addItem, category],
-		)
+		const addItemWrap = useCallback<AddItemWrapT>(item => addItem({ ...item, category }), [
+			addItem,
+			category,
+		])
 
 		return (
 			<>

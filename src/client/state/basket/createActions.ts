@@ -1,4 +1,10 @@
-import { ADD_INGREDIENT, REMOVE_INGREDIENT, ADD_ITEM, REMOVE_ITEM } from './actionTypes'
+import {
+	ADD_INGREDIENT,
+	REMOVE_INGREDIENT,
+	ADD_ITEM,
+	REMOVE_ITEM,
+	CLOSE_DIALOG,
+} from './actionTypes'
 
 import { BasketItemT } from 'components/Basket'
 
@@ -7,10 +13,14 @@ type HandleIngredientT = {
 	id: number
 }
 
+export type AddItemPayloadT = Omit<BasketItemT, 'id' | 'dialogOpened'> & {
+	dialogOpened?: boolean
+}
+
 export type BasketStateActionT =
 	| {
 			type: typeof ADD_ITEM
-			payload: Omit<BasketItemT, 'id'>
+			payload: AddItemPayloadT
 	  }
 	| {
 			type: typeof REMOVE_ITEM
@@ -24,11 +34,15 @@ export type BasketStateActionT =
 			type: typeof REMOVE_INGREDIENT
 			payload: HandleIngredientT
 	  }
+	| {
+			type: typeof CLOSE_DIALOG
+			payload: number
+	  }
 
 export type BasketStateActionTypeT = BasketStateActionT['type']
 
 const actions = (dispatch: React.Dispatch<BasketStateActionT>) => ({
-	addItem: (item: Omit<BasketItemT, 'id'>) => dispatch({ type: ADD_ITEM, payload: item }),
+	addItem: (item: AddItemPayloadT) => dispatch({ type: ADD_ITEM, payload: item }),
 
 	removeItem: (id: number) => dispatch({ type: REMOVE_ITEM, payload: id }),
 
@@ -37,6 +51,7 @@ const actions = (dispatch: React.Dispatch<BasketStateActionT>) => ({
 
 	removeIngredient: (ingredient: string, id: number) =>
 		dispatch({ type: REMOVE_INGREDIENT, payload: { ingredient, id } }),
+	closeDialog: (id: number) => dispatch({ type: CLOSE_DIALOG, payload: id }),
 })
 
 export default actions

@@ -1,29 +1,33 @@
-const kinkku = 'kinkku'
-const ananas = 'ananas'
-const salami = 'salami'
-const sipuli = 'sipuli'
-const valkosipuli = 'valkosipuli'
-const tonnikala = 'tonnikala'
-const aurajuusto = 'aurajuusto'
-const katkarapu = 'katkarapu'
-const pinaatti = 'pinaatti'
-const kananmuna = 'kananmuna'
-const mozzarella = 'mozzarella'
-const tomaatti = 'tomaatti'
-const parmesanijuusto = 'parmesanijuusto'
-const parsa = 'parsa'
-const cheddarjuusto = 'cheddarjuusto'
-const herkkusieni = 'herkkusieni'
-const rucola = 'rucola'
-const jalopeno = 'jalopeno'
-const oliivi = 'oliivi'
-const maissi = 'maissi'
-const paprika = 'paprika'
-const majoneesi = 'majoneesi'
-const turkinpippuri = 'turkinpippuri'
-const salaatti = 'salaatti'
-const bbqKastike = 'BBQ-kastike'
-const piatti = 'piåtti'
+import ingredients from 'constants/ingredients'
+
+const {
+	kinkku,
+	ananas,
+	salami,
+	sipuli,
+	valkosipuli,
+	tonnikala,
+	aurajuusto,
+	katkarapu,
+	pinaatti,
+	kananmuna,
+	mozzarella,
+	tomaatti,
+	parmesanijuusto,
+	parsa,
+	cheddarjuusto,
+	herkkusieni,
+	rucola,
+	jalapenos,
+	oliivi,
+	maissi,
+	paprika,
+	majoneesi,
+	turkinpippuri,
+	salaatti,
+	bbqKastike,
+	piatti,
+} = ingredients
 
 type VariantT = {
 	size: string
@@ -116,7 +120,7 @@ const menu: MenuCategoryT[] = [
 			},
 			{
 				name: 'Delo vege',
-				ingredients: [tomaatti, jalopeno, oliivi, mozzarella, maissi],
+				ingredients: [tomaatti, jalapenos, oliivi, mozzarella, maissi],
 			},
 			{
 				name: 'Milan vege',

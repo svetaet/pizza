@@ -21,7 +21,7 @@
     "ts": "tsc -w",
     "lint": "eslint ./**/*",
     "fix": "eslint ./**/* --fix",
-    "deploy": "yarn run build:bundle && surge dist/bundle"
+    "deploy": "yarn run build:bundle && surge dist/bundle pizza-draft.surge.sh"
   },
   "devDependencies": {
     "@babel/core": "^7.6.2",

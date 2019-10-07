@@ -1,4 +1,10 @@
-import { ADD_INGREDIENT, REMOVE_INGREDIENT, ADD_ITEM, REMOVE_ITEM } from './actionTypes'
+import {
+	ADD_INGREDIENT,
+	REMOVE_INGREDIENT,
+	ADD_ITEM,
+	REMOVE_ITEM,
+	CLOSE_DIALOG,
+} from './actionTypes'
 import { BasketItemT } from 'components/Basket'
 import { BasketStateActionT } from './createActions'
 
@@ -9,7 +15,7 @@ type BasketReducerT = (state: BasketItemT[], action: BasketStateActionT) => Bask
 const userStateReducer: BasketReducerT = (state, action) => {
 	switch (action.type) {
 		case ADD_ITEM:
-			return [...state, { ...action.payload, id: getId() }]
+			return [...state, { dialogOpened: true, ...action.payload, id: getId() }]
 
 		case REMOVE_ITEM:
 			return state.filter(item => item.id !== action.payload)
@@ -31,6 +37,10 @@ const userStateReducer: BasketReducerT = (state, action) => {
 							),
 					  }
 					: item,
+			)
+		case CLOSE_DIALOG:
+			return state.map(item =>
+				item.id === action.payload ? { ...item, dialogOpened: false } : item,
 			)
 
 		default:

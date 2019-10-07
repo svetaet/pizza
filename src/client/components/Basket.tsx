@@ -1,13 +1,19 @@
-import React, { memo } from 'react'
+import React, { memo, Fragment } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
+import { lastOf } from '@rqm/tools'
 
-import themeColors from 'themeColors'
+import PlusIcon from 'components/icons/Plus'
+import MinusIcon from 'components/icons/Minus'
+
+// import themeColors from 'themeColors'
 import styles from 'styles'
 import basketContext from 'state/basket/basketContext'
 import formatPrice from 'utils/formatPrice'
+import getDefaultIngredients from 'utils/getDefaultIngredients'
 
 export type BasketItemT = {
+	dialogOpened: boolean
 	id: number
 	price: number
 	size: string
@@ -31,14 +37,8 @@ export const equalItems = (item1: BasketItemT, item2: BasketItemT) =>
 const Basket = memo(
 	withContext(
 		basketContext,
-		([basket, { removeIngredient, removeItem, addItem }]) => ({
-			removeIngredient,
-			removeItem,
-			addItem,
-			basket,
-		}),
-		({ removeIngredient, removeItem, addItem, basket }) => {
-			console.time('basket')
+		([basket, { removeItem, addItem }]) => ({ removeItem, addItem, basket }),
+		({ removeItem, addItem, basket }) => {
 			const items = basket.reduce((items: StackedBasketItemT[], item1) => {
 				const stackingItem = items.find(item2 => equalItems(item1, item2))
 				return stackingItem
@@ -49,9 +49,9 @@ const Basket = memo(
 					  )
 					: items.concat({ ...item1, ids: [item1.id] })
 			}, [])
-			console.timeEnd('basket')
-			console.table(basket)
-			console.table(items)
+
+			// console.table(basket)
+			// console.table(items)
 			return (
 				<div
 					css={css`
@@ -80,31 +80,103 @@ const Basket = memo(
 							flex-direction: column;
 						`}
 					>
-						{items.map(({ ids, id, ingredients, name, price, size, category }) => (
-							<div
-								key={id}
-								css={css`
-									display: flex;
-									justify-content: space-between;
-									margin: 0 0 10px 0;
-									& * {
-										margin: 0;
-										font-size: 14px;
-										white-space: nowrap;
-									}
-								`}
-							>
-								<p>{`${ids.length} x${category} ${name}(${size})`}</p>
-								<p
-									css={css`
-										margin-left: 5px;
-										font-weight: bold;
-									`}
-								>
-									{formatPrice(price)}
-								</p>
-							</div>
-						))}
+						{items.map(({ ids, id, ingredients, name, price, size, category }) => {
+							const extraIngredients: string[] = []
+							const removedIngredients: string[] = []
+							try {
+								const defaultIngredients = getDefaultIngredients({ category, name })
+
+								ingredients.forEach(ingredient => {
+									if (!defaultIngredients.includes(ingredient))
+										extraIngredients.push(ingredient)
+								})
+
+								defaultIngredients.forEach(ingredient => {
+									if (!ingredients.includes(ingredient)) removedIngredients.push(ingredient)
+								})
+							} catch (err) {
+								console.error(err)
+							}
+							return (
+								<Fragment key={id}>
+									<div
+										css={css`
+											display: flex;
+											justify-content: space-between;
+											margin-bottom: 10px;
+											& p {
+												margin: 0;
+												font-size: 14px;
+											}
+										`}
+									>
+										<p>{`${ids.length} x${category} ${name}(${size})`}</p>
+										<div
+											css={css`
+												& > button {
+													border: none;
+													background: transparent;
+													padding: 0;
+													margin-left: 5px;
+													cursor: pointer;
+													font-size: 0;
+													outline: none;
+												}
+												margin-left: 5px;
+												font-weight: bold;
+												display: flex;
+												align-items: center;
+											`}
+										>
+											<p>{formatPrice(price * ids.length)}</p>
+											<button
+												onClick={() =>
+													addItem({
+														ingredients,
+														name,
+														price,
+														size,
+														category,
+														dialogOpened: false,
+													})
+												}
+											>
+												<PlusIcon />
+											</button>
+											<button onClick={() => removeItem(lastOf(ids))}>
+												<MinusIcon />
+											</button>
+										</div>
+									</div>
+									<div
+										css={css`
+											margin-bottom: 10px;
+											font-size: 12px;
+											& > p {
+												margin: 0 3px;
+											}
+										`}
+									>
+										{removedIngredients.map(ingredient => (
+											<p
+												css={css`
+													color: red;
+												`}
+												key={ingredient}
+											>{`- ${ingredient}`}</p>
+										))}
+										{extraIngredients.map(ingredient => (
+											<p
+												css={css`
+													color: green;
+												`}
+												key={ingredient}
+											>{`+ ${ingredient}`}</p>
+										))}
+									</div>
+								</Fragment>
+							)
+						})}
 					</div>
 				</div>
 			)
