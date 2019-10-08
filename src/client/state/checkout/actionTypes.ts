@@ -1,0 +1,2 @@
+export const OPEN_CHECKOUT = 'OPEN_CHECKOUT'
+export const CLOSE_CHECKOUT = 'CLOSE_CHECKOUT'

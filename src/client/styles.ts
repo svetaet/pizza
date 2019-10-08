@@ -24,7 +24,7 @@ export default {
 				z-index: -1;
 				left: 0;
 				top: 15px;
-				width: 100%;
+				width: calc(100% - 2px);
 				height: calc(100% - 30px);
 				border-width: 0px ${getSidePx('right')}px 0px ${getSidePx('left')}px;
 				border-style: solid;
@@ -50,4 +50,19 @@ export default {
 		`
 		return css(borderStyle)
 	},
+	scrollbar: css`
+		overflow: auto;
+		// &::-webkit-scrollbar {
+		// 	width: 8px;
+		// }
+		// &::-webkit-scrollbar-track {
+		// 	background: transparent;
+		// }
+
+		// &::-webkit-scrollbar-thumb {
+		// 	background-color: darkgrey;
+		// 	border: solid 2px white;
+		// 	border-radius: 2px;
+		// }
+	`,
 }

@@ -4,12 +4,11 @@ import { withContext } from '@rqm/react-tools'
 
 import menu from 'constants/menu'
 import ingredients from 'constants/extraIngredients'
-import themeColors from 'themeColors'
 import basketContext from 'state/basket/basketContext'
 import { BasketItemT } from 'components/Basket'
-import Close from 'components/icons/Close'
 import getDefaultIngredients from 'utils/getDefaultIngredients'
 import formatPrice from 'utils/formatPrice'
+import Dialog from 'components/Dialog'
 
 type ItemP = {
 	ingredient: string
@@ -22,9 +21,14 @@ const Item = memo<ItemP>(({ ingredient, price, toggle, added }) => {
 	return (
 		<div
 			css={css`
+				margin: 5px 0;
+				width: 200px;
 				display: flex;
 				align-items: center;
 				& > span {
+					&::first-letter {
+						text-transform: uppercase;
+					}
 					cursor: pointer;
 				}
 				& > input {
@@ -53,10 +57,10 @@ type IngredientsP = {
 	item: BasketItemT
 	addIngredient: (ingredient: string, id: number) => void
 	removeIngredient: (ingredient: string, id: number) => void
-	closeDialog: (id: number) => void
+	closeIngredients: (id: number) => void
 }
 const Ingredients = memo<IngredientsP>(
-	({ item, addIngredient, removeIngredient, closeDialog }) => {
+	({ item, addIngredient, removeIngredient, closeIngredients }) => {
 		const { category, id, name } = item
 
 		const defaultIngredients = useMemo(() => getDefaultIngredients({ category, name }), [
@@ -75,49 +79,16 @@ const Ingredients = memo<IngredientsP>(
 			[addIngredient, id, removeIngredient],
 		)
 
-		// const add = useCallback((ingredient: string) => addIngredient(ingredient, id), [
-		// 	addIngredient,
-		// 	id,
-		// ])
-		// const remove = useCallback((ingredient: string) => removeIngredient(ingredient, id), [
-		// 	removeIngredient,
-		// 	id,
-		// ])
-		const close = () => closeDialog(id)
+		const close = () => closeIngredients(id)
 		return (
-			<div
-				css={css`
-					top: 0;
-					left: 0;
-					position: fixed;
-					width: 100vw;
-					height: 100vh;
-					display: grid;
-					background: transparent;
-					font-family: 'Calibri', sans-serif;
-					color: #656565;
-				`}
-				onClick={close}
-			>
+			<Dialog close={close}>
 				<div
 					onClick={e => e.stopPropagation()}
 					css={css`
-						position: relative;
-						border-radius: 20px;
-						border: solid 1px ${themeColors.weak};
-						max-width: 600px;
-						padding: 10px 20px;
-						margin: auto;
-						background: white;
-						box-shadow: 1px 1px 10px 0px ##656565ab;
 						& > div {
 							display: flex;
 							flex-wrap: wrap;
 							margin-bottom: 5px;
-							& > div {
-								margin: 5px 0;
-								width: 200px;
-							}
 						}
 						& > h4 {
 							margin: 0 0 0 5px;
@@ -156,30 +127,18 @@ const Ingredients = memo<IngredientsP>(
 							/>
 						))}
 					</div>
-
-					<div
-						css={css`
-							position: absolute;
-							top: 10px;
-							right: 10px;
-						`}
-						onClick={close}
-					>
-						<Close />
-					</div>
 				</div>
-			</div>
+			</Dialog>
 		)
 	},
 )
 
 const OpenedItem = withContext(
 	basketContext,
-	([basket, { addIngredient, removeIngredient, closeDialog }], props) => ({
-		...props,
+	([basket, { addIngredient, removeIngredient, closeIngredients }]) => ({
 		addIngredient,
 		removeIngredient,
-		closeDialog,
+		closeIngredients,
 		item: basket.find(item => item.dialogOpened),
 	}),
 	props => (props.item ? <Ingredients {...props} item={props.item} /> : null),

@@ -53,16 +53,19 @@ const Categories = memo(
 				css={css`
 					display: flex;
 					flex-direction: column;
+					padding: 0 15px 0 0;
 					position: sticky;
-					top: 30px;
-					height: 600px;
+					top: 0;
+					min-width: 130px;
+					height: 100vh;
+					box-sizing: border-box;
+					${styles.scrollbar}
 				`}
 			>
 				<h2
 					css={css`
-						padding-left: 15px;
+						padding: 0 0 5px 0px;
 						margin: 0;
-						padding-bottom: 5px;
 						${styles.title};
 					`}
 				>
@@ -73,7 +76,7 @@ const Categories = memo(
 						${styles.border('top', 'right')}
 						display: flex;
 						flex-direction: column;
-						padding: 0 15px 70px 15px;
+						padding: 0 15px 0 0;
 					`}
 				>
 					{menu.map(({ category, path }) => (

@@ -3,7 +3,7 @@ import {
 	REMOVE_INGREDIENT,
 	ADD_ITEM,
 	REMOVE_ITEM,
-	CLOSE_DIALOG,
+	CLOSE_INGREDIENTS,
 } from './actionTypes'
 import { BasketItemT } from 'components/Basket'
 import { BasketStateActionT } from './createActions'
@@ -16,7 +16,6 @@ const userStateReducer: BasketReducerT = (state, action) => {
 	switch (action.type) {
 		case ADD_ITEM:
 			return [...state, { dialogOpened: true, ...action.payload, id: getId() }]
-
 		case REMOVE_ITEM:
 			return state.filter(item => item.id !== action.payload)
 
@@ -26,7 +25,6 @@ const userStateReducer: BasketReducerT = (state, action) => {
 					? { ...item, ingredients: [...item.ingredients, action.payload.ingredient] }
 					: item,
 			)
-
 		case REMOVE_INGREDIENT:
 			return state.map(item =>
 				item.id === action.payload.id
@@ -38,7 +36,8 @@ const userStateReducer: BasketReducerT = (state, action) => {
 					  }
 					: item,
 			)
-		case CLOSE_DIALOG:
+
+		case CLOSE_INGREDIENTS:
 			return state.map(item =>
 				item.id === action.payload ? { ...item, dialogOpened: false } : item,
 			)

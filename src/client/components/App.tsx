@@ -7,57 +7,65 @@ import Categories from 'components/Categories'
 import Menu from 'components/Menu'
 import Basket from 'components/Basket'
 import Ingredients from 'components/Ingredients'
+import Checkout from 'components/Checkout'
 import background from 'images/background.jpg'
 import BasketProvider from 'state/basket/BasketProvider'
+import UserStateProvider from 'state/userState/UserStateProvider'
+import CheckoutProvider from 'state/checkout/CheckoutProvider'
 import history from '../history'
 
 const App = memo(() => {
 	const rootRef = useRef<HTMLDivElement>(null)
 	return (
 		<Router history={history}>
-			<BasketProvider>
-				<div
-					ref={rootRef}
-					css={css`
-						will-change: transform;
-						width: 100vw;
-						height: 100vh;
-						overflow: auto;
-						display: flex;
-						flex-direction: column;
-						align-items: center;
-						font-family: 'Calibri', sans-serif;
-
-						background-image: url(${background});
-						background-position: top center;
-						background-size: auto ${headerHeight}px;
-						background-repeat: no-repeat;
-						background-attachment: local;
-					`}
-				>
-					<div
-						css={css`
-							text-align: left;
-							box-sizing: border-box;
-							width: 100%;
-							padding: 0 10px;
-							max-width: 1100px;
-						`}
-					>
-						<Header />
+			<CheckoutProvider>
+				<BasketProvider>
+					<UserStateProvider>
 						<div
+							ref={rootRef}
 							css={css`
+								will-change: transform;
+								width: 100vw;
+								height: 100vh;
+								overflow: auto;
 								display: flex;
+								flex-direction: column;
+								align-items: center;
+								font-family: 'Calibri', sans-serif;
+
+								background-image: url(${background});
+								background-position: top center;
+								background-size: auto ${headerHeight}px;
+								background-repeat: no-repeat;
+								background-attachment: local;
 							`}
 						>
-							<Categories />
-							<Menu rootRef={rootRef} />
-							<Basket />
+							<div
+								css={css`
+									text-align: left;
+									box-sizing: border-box;
+									width: 100%;
+									padding: 0 10px;
+									max-width: 1100px;
+								`}
+							>
+								<Header />
+								<div
+									css={css`
+										display: flex;
+									`}
+								>
+									<Categories />
+									<Menu rootRef={rootRef} />
+									<Basket />
+								</div>
+							</div>
 						</div>
-					</div>
-				</div>
-				<Ingredients />
-			</BasketProvider>
+						<Ingredients />
+						<Checkout />
+					</UserStateProvider>
+				</BasketProvider>
+			</CheckoutProvider>
 		</Router>
 	)
 })

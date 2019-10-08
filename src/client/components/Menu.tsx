@@ -14,7 +14,7 @@ import history from '../history'
 import formatPrice from 'utils/formatPrice'
 
 const categoryHeight = 68
-const itemHeight = 100
+const itemHeight = 115
 
 const formatIngredients = (ingredients: string[]) => {
 	let result = ingredients[0][0].toUpperCase() + ingredients[0].slice(1) + ', '
@@ -56,13 +56,17 @@ const MenuItem: FC<MenuItemP> = ({
 				display: flex;
 				height: ${itemHeight}px;
 				justify-content: space-between;
-				padding: 9px 15px 0 45px;
+				padding: 13px 15px 13px 45px;
 				box-sizing: border-box;
-				margin-right: 10px;
 			`}
 			onMouseOver={() => hoverHandler(n)}
 		>
-			<div>
+			<div
+				css={css`
+					margin-right: 10px;
+					${styles.scrollbar}
+				`}
+			>
 				<h3
 					css={css`
 						margin: 0 0 5px 0;
@@ -74,6 +78,7 @@ const MenuItem: FC<MenuItemP> = ({
 					css={css`
 						font-size: 14px;
 						color: ${themeColors.weak};
+						padding-bottom: 5px;
 					`}
 				>
 					{formatIngredients(ingredients)}
@@ -84,6 +89,7 @@ const MenuItem: FC<MenuItemP> = ({
 				css={css`
 					display: flex;
 					flex-direction: column;
+					justify-content: space-evenly;
 				`}
 			>
 				{variants.map(({ price, size }) => (
@@ -92,7 +98,6 @@ const MenuItem: FC<MenuItemP> = ({
 						css={css`
 							display: flex;
 							justify-content: space-between;
-							margin: 4px 0;
 							align-items: center;
 						`}
 					>
@@ -113,13 +118,18 @@ const MenuItem: FC<MenuItemP> = ({
 							>
 								{size}
 							</p>
-							<p>{`DKK ${formatPrice(price)}`}</p>
+							<p
+								css={css`
+									white-space: nowrap;
+								`}
+							>{`DKK ${formatPrice(price)}`}</p>
 						</div>
 						<div
 							onClick={() => addItem({ name, size, ingredients, price })}
 							css={css`
 								margin-left: 30px;
 								cursor: pointer;
+								display: grid;
 							`}
 						>
 							<AddIcon />

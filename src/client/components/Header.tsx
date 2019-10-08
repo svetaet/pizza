@@ -1,10 +1,10 @@
-import React, { FC } from 'react'
+import React, { memo } from 'react'
 import { css } from '@emotion/core'
 import logo from 'images/logo.png'
 
 export const headerHeight = 610
 
-const Header: FC = () => {
+const Header = memo(() => {
 	return (
 		<div
 			css={css`
@@ -73,6 +73,6 @@ const Header: FC = () => {
 			</h1>
 		</div>
 	)
-}
+})
 
 export default Header
