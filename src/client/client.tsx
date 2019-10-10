@@ -8,11 +8,11 @@ const root = document.getElementById('root')
 if (process.env.NODE_ENV === 'production') {
 	hydrate(<App />, root)
 
-	if ('serviceWorker' in navigator) {
-		window.addEventListener('load', () => {
-			navigator.serviceWorker.register('/service-worker.js')
-		})
-	}
+	// if ('serviceWorker' in navigator) {
+	// 	window.addEventListener('load', () => {
+	// 		navigator.serviceWorker.register('/service-worker.js')
+	// 	})
+	// }
 } else {
 	const HotApp = hot(App)
 	render(<HotApp />, root)

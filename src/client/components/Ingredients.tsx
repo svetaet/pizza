@@ -1,8 +1,7 @@
-import React, { memo, FC, useState, useCallback, useMemo, useRef } from 'react'
+import React, { memo, useCallback, useMemo, useRef } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
-import menu from 'constants/menu'
 import ingredients from 'constants/extraIngredients'
 import basketContext from 'state/basket/basketContext'
 import { BasketItemT } from 'components/Basket'

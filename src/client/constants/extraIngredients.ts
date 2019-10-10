@@ -1,19 +1,19 @@
 import ingredients from 'constants/ingredients'
 
-const { ananas, tomaatti, jalapenos, oliivi, paprika } = ingredients
+const { ananas, tomat, jalapenos, oliven, paprika, log, chili } = ingredients
 
 export default [
-	{ name: tomaatti, price: 6 },
+	{ name: tomat, price: 6 },
 	{ name: 'bearnaisesauce', price: 6 },
 	{ name: 'hvidløg', price: 6 },
 	{ name: 'salatmayonnaise', price: 6 },
 	{ name: 'champignon', price: 14 },
-	{ name: oliivi, price: 14 },
+	{ name: oliven, price: 14 },
 	{ name: 'cocktailpølser', price: 19 },
 	{ name: 'kødsauce', price: 19 },
 	{ name: 'ost', price: 19 },
 	{ name: 'rejer', price: 19 },
-	{ name: 'chili', price: 6 },
+	{ name: chili, price: 6 },
 	{ name: 'ketchup', price: 6 },
 	{ name: ananas, price: 14 },
 	{ name: jalapenos, price: 14 },
@@ -25,7 +25,7 @@ export default [
 	{ name: 'dressing i bæger', price: 6 },
 	{ name: 'remoulade', price: 6 },
 	{ name: 'æg', price: 14 },
-	{ name: 'løg', price: 14 },
+	{ name: log, price: 14 },
 	{ name: 'bacon', price: 19 },
 	{ name: 'Hakket Oksekød', price: 19 },
 	{ name: 'kylling', price: 19 },
@@ -34,12 +34,12 @@ export default [
 ]
 
 // export default {
-// 	tomaatti: { name: tomaatti, price: 6 },
+// 	tomat: { name: tomat, price: 6 },
 // 	bearnaisesauce: { name: 'bearnaisesauce', price: 6 },
 // 	hvidlog: { name: 'hvidløg', price: 6 },
 // 	salatmayonnaise: { name: 'salatmayonnaise', price: 6 },
 // 	champignon: { name: 'champignon', price: 14 },
-// 	oliivi: { name: oliivi, price: 14 },
+// 	oliven: { name: oliven, price: 14 },
 // 	cocktailpolser: { name: 'cocktailpølser', price: 19 },
 // 	kodsauce: { name: 'kødsauce', price: 19 },
 // 	ost: { name: 'ost', price: 19 },

@@ -104,6 +104,7 @@ const MenuItem: FC<MenuItemP> = ({
 						<div
 							css={css`
 								width: 110px;
+								min-width: 110px;
 								display: flex;
 								justify-content: space-between;
 								align-items: center;
@@ -249,12 +250,11 @@ const Menu = withContext(
 			<div
 				css={css`
 					width: 625px;
-					margin-right: 15px;
 				`}
 			>
 				<h2
 					css={css`
-						margin: 0;x;
+						margin: 0;
 						padding: 0 0 5px 85px;
 						${styles.title}
 						${styles.border('bottom')}
@@ -266,7 +266,7 @@ const Menu = withContext(
 					ref={menuRef}
 					css={css`
 						position: relative;
-						padding-left: 30px;
+						padding: 0 15px 0 30px;
 						& > *:not(*:nth-of-type(1)) {
 							${styles.border('bottom')}
 						}

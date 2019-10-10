@@ -4,7 +4,11 @@ import { css } from '@emotion/core'
 import Close from 'components/icons/Close'
 import themeColors from 'themeColors'
 
-const Dialog: FC<{ close: () => void }> = ({ close, children }) => (
+const Dialog: FC<{ close: () => void; innerCss?: string }> = ({
+	close,
+	children,
+	innerCss = '',
+}) => (
 	<div
 		css={css`
 			top: 0;
@@ -15,10 +19,10 @@ const Dialog: FC<{ close: () => void }> = ({ close, children }) => (
 			display: grid;
 			background: transparent;
 			font-family: 'Calibri', sans-serif;
-			color: #656565;
 			overflow: auto;
 			padding: 20px;
 			box-sizing: border-box;
+			${innerCss}
 		`}
 		onClick={close}
 	>
@@ -29,7 +33,10 @@ const Dialog: FC<{ close: () => void }> = ({ close, children }) => (
 				border-radius: 20px;
 				border: solid 1px ${themeColors.weak};
 				max-width: 600px;
-				padding: 10px 20px;
+				@media (max-width: 640px) {
+					max-width: calc(100vw - 120px);
+				}
+				padding: 20px;
 				margin: auto;
 				background: white;
 				box-shadow: 1px 1px 10px 0px #656565ab;

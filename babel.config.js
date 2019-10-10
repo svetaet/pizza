@@ -26,6 +26,8 @@ module.exports = {
 	plugins: [
 		'react-hot-loader/babel',
 		'transform-react-remove-prop-types',
+		'syntax-trailing-function-commas',
+		'@babel/plugin-proposal-object-rest-spread',
 		// [
 		// 	'transform-imports',
 		// 	{

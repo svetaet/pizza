@@ -2,10 +2,8 @@ import React, { memo, useState } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
-import logo from 'images/logo.png'
 import styles from 'styles'
 import formatPrice from 'utils/formatPrice'
-import themeColors from 'themeColors'
 import DeliveryBike from 'components/icons/DeliveryBike'
 import Bag from 'components/icons/Bag'
 import Info from 'components/Info'
@@ -96,7 +94,7 @@ const Delivery = withContext(
 										setPostalCode(option)
 									}}
 								>
-									{postalCodes.map(({ price, value }) => (
+									{postalCodes.map(({ value }) => (
 										<option key={value} value={value}>
 											{value}
 										</option>

@@ -78,7 +78,7 @@ const Basket = memo(
 					console.error(err)
 				}
 				const price = item.price + extraIngredientsPrice
-				totalPrice += price
+				totalPrice += price * item.ids.length
 				return { ...item, price, removedIngredients, extraIngredients }
 			})
 

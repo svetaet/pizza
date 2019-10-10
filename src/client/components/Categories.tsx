@@ -53,7 +53,7 @@ const Categories = memo(
 				css={css`
 					display: flex;
 					flex-direction: column;
-					padding: 0 15px 0 0;
+					// padding: 0 15px 0 0;
 					position: sticky;
 					top: 0;
 					min-width: 130px;
