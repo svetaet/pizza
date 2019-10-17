@@ -11,12 +11,15 @@ const Dialog: FC<{ close: () => void; innerCss?: string }> = ({
 }) => (
 	<div
 		css={css`
+			z-index: 6;
 			top: 0;
 			left: 0;
-			position: fixed;
+			height: 100%;
 			width: 100vw;
-			height: 100vh;
-			display: grid;
+			position: fixed;
+			display: flex;
+			justify-content: center;
+			align-items: center;
 			background: transparent;
 			font-family: 'Calibri', sans-serif;
 			overflow: auto;

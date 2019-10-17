@@ -2,6 +2,9 @@ import React from 'react'
 import { render, hydrate } from 'react-dom'
 import { hot } from 'react-hot-loader/root'
 import App from 'components/App'
+import smoothscroll from 'smoothscroll-polyfill'
+
+smoothscroll.polyfill()
 
 const root = document.getElementById('root')
 

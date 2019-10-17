@@ -1,4 +1,4 @@
-import React, { memo, FC, useCallback, useEffect, useRef } from 'react'
+import React, { memo, FC, useCallback, useEffect, useRef, useMemo } from 'react'
 import { css } from '@emotion/core'
 import { animated, useSpring } from '@react-spring/web'
 import { throttle } from '@rqm/tools'
@@ -7,49 +7,62 @@ import { withContext } from '@rqm/react-tools'
 import { AddItemPayloadT } from 'state/basket/createActions'
 import basketContext from 'state/basket/basketContext'
 import AddIcon from 'components/icons/Add'
-import menu, { MenuItemT, MenuCategoryT } from 'constants/menu'
+import MenuStub from 'components/MenuStub'
 import styles from 'styles'
 import themeColors from 'themeColors'
-import history from '../history'
 import formatPrice from 'utils/formatPrice'
+import getDefaultIngredients from 'utils/getDefaultIngredients'
 
-const categoryHeight = 68
-const itemHeight = 115
-
-const formatIngredients = (ingredients: string[]) => {
-	let result = ingredients[0][0].toUpperCase() + ingredients[0].slice(1) + ', '
-
-	const intermediateLength = ingredients.length - 2
-
-	for (let i = 1; i < intermediateLength; ++i) {
-		result += ingredients[i] + ', '
-	}
-
-	result += ingredients[intermediateLength + 1] + '.'
-	return result
+export type IngredientT = {
+	id: string
+	name: string
+	price: number
 }
 
-type AddItemWrapT = (item: {
+export type ItemT = {
+	id: string
 	name: string
-	size: string
+	description: string
 	price: number
-	ingredients: string[]
-}) => void
+	deep_price?: number
+	fam_price?: number
+	extras: IngredientT[]
+}
+
+export type CategoryT = {
+	id: string
+	name: string
+	slug: string
+	pizzas: ItemT[]
+}
+
+export type MenuT = CategoryT[]
+
+export const categoryHeight = 68
+export const itemHeight = 115
+
+type AddItemWrapT = (item: Omit<AddItemPayloadT, 'category'>) => void
 
 type MenuItemP = {
 	hoverHandler: (n: number) => void
 	n: number
 	addItem: AddItemWrapT
-} & Required<MenuItemT>
+} & Omit<ItemT, 'id'>
 
 const MenuItem: FC<MenuItemP> = ({
-	ingredients,
+	extras,
 	name,
-	variants,
+	price,
+	deep_price,
+	fam_price,
+	description,
 	hoverHandler,
 	addItem,
 	n,
 }) => {
+	const variants = [{ price, size: 'ALM' }]
+	if (deep_price) variants.push({ price: deep_price, size: 'DEEP' })
+	if (fam_price) variants.push({ price: fam_price, size: 'FAM' })
 	return (
 		<div
 			css={css`
@@ -57,6 +70,9 @@ const MenuItem: FC<MenuItemP> = ({
 				height: ${itemHeight}px;
 				justify-content: space-between;
 				padding: 13px 15px 13px 45px;
+				@media (max-width: 760px) {
+					padding: 13px 15px 13px 15px;
+				}
 				box-sizing: border-box;
 			`}
 			onMouseOver={() => hoverHandler(n)}
@@ -81,7 +97,7 @@ const MenuItem: FC<MenuItemP> = ({
 						padding-bottom: 5px;
 					`}
 				>
-					{formatIngredients(ingredients)}
+					{description}
 				</p>
 			</div>
 
@@ -111,14 +127,15 @@ const MenuItem: FC<MenuItemP> = ({
 								color: ${themeColors.weak};
 							`}
 						>
-							<p
+							<span
 								css={css`
 									font-size: 12px;
 									font-weight: bold;
+									margin: 0 5px 0 0;
 								`}
 							>
 								{size}
-							</p>
+							</span>
 							<p
 								css={css`
 									white-space: nowrap;
@@ -126,9 +143,22 @@ const MenuItem: FC<MenuItemP> = ({
 							>{`DKK ${formatPrice(price)}`}</p>
 						</div>
 						<div
-							onClick={() => addItem({ name, size, ingredients, price })}
+							onClick={() => {
+								const defaults = getDefaultIngredients(description)
+								addItem({
+									name,
+									size,
+									defaults,
+									extras,
+									price,
+									dialogOpened: [defaults, extras].some(ings => ings.length !== 0),
+								})
+							}}
 							css={css`
 								margin-left: 30px;
+								@media (max-width: 760px) {
+									margin-left: 10px;
+								}
 								cursor: pointer;
 								display: grid;
 							`}
@@ -146,9 +176,9 @@ type MenuItemsContainerP = {
 	n: number
 	glide: (categoryN: number, itemN: number) => void
 	addItem: (item: AddItemPayloadT) => void
-} & MenuCategoryT
+} & Omit<CategoryT, 'id'>
 const MenuItemsContainer = memo<MenuItemsContainerP>(
-	({ path, category, items, defaultVariants, glide, addItem, n }) => {
+	({ slug, name: category, pizzas: items, glide, addItem, n }) => {
 		const hoverHandler = useCallback(itemN => glide(n, itemN), [glide, n])
 
 		const addItemWrap = useCallback<AddItemWrapT>(item => addItem({ ...item, category }), [
@@ -159,7 +189,7 @@ const MenuItemsContainer = memo<MenuItemsContainerP>(
 		return (
 			<>
 				<h1
-					id={path}
+					id={slug}
 					css={css`
 						font-weight: normal;
 						height: ${categoryHeight}px;
@@ -171,12 +201,15 @@ const MenuItemsContainer = memo<MenuItemsContainerP>(
 				>
 					{category}
 				</h1>
-				{items.map(({ ingredients, name, variants = defaultVariants }, n) => (
+				{items.map(({ name, price, deep_price, fam_price, description, extras }, n) => (
 					<MenuItem
 						key={name}
-						ingredients={ingredients}
 						name={name}
-						variants={variants}
+						extras={extras}
+						price={price}
+						deep_price={deep_price}
+						fam_price={fam_price}
+						description={description}
 						hoverHandler={hoverHandler}
 						addItem={addItemWrap}
 						n={n}
@@ -188,68 +221,73 @@ const MenuItemsContainer = memo<MenuItemsContainerP>(
 )
 
 const initialTop = categoryHeight
-
-const getTop = (categoryN: number, itemN: number) => {
-	const prevCategoriesLength = menu
-		.filter((item, n) => n < categoryN)
-		.reduce((len, { items }) => len + items.length, 0)
-	return categoryHeight * categoryN + prevCategoriesLength * itemHeight + itemN * itemHeight
-}
-
-const categoriesOffset = menu.map(({ path }, n) => ({ offset: getTop(n, 0), path })).reverse()
-
-const Menu = withContext(
+const Menu: FC<{ menu: MenuT; setCategory: (slug: string) => void }> = withContext(
 	basketContext,
-	([, { addItem }], props: { rootRef: React.RefObject<HTMLDivElement> }) => ({
-		addItem,
-		...props,
-	}),
-	memo(({ rootRef, addItem }) => {
+	([, { addItem }], props) => ({ addItem, ...props }),
+	memo(({ addItem, menu, setCategory }) => {
 		const [spring, setSpring] = useSpring(() => ({ top: initialTop }))
+
+		const getTop = useCallback(
+			(categoryN: number, itemN: number) => {
+				const prevCategoriesLength = menu
+					.filter((item, n) => n < categoryN)
+					.reduce((len, { pizzas }) => len + pizzas.length, 0)
+				return (
+					categoryHeight * categoryN + prevCategoriesLength * itemHeight + itemN * itemHeight
+				)
+			},
+			[menu],
+		)
+
+		const categoriesOffset = useMemo(
+			() => menu.map(({ slug }, n) => ({ offset: getTop(n, 0), slug })).reverse(),
+			[menu, getTop],
+		)
 		const glide = useCallback(
 			(categoryN: number, itemN: number) =>
 				setSpring({ top: initialTop + getTop(categoryN, itemN) }),
-			[setSpring],
+			[getTop, setSpring],
 		)
 
 		const menuRef = useRef<HTMLDivElement>(null)
-		const menuOffsetTop = useRef(700)
+		const menuOffsetTop = useRef(680)
 
 		useEffect(() => {
-			const root = rootRef.current
-			if (root) {
-				root.addEventListener<'scroll'>(
-					'scroll',
-					throttle(
-						(e: Event) => {
-							let categoryPath = '/'
-							const target = e.target as HTMLDivElement
-							const menuScrollTop =
-								target.scrollTop - menuOffsetTop.current + Math.round(window.innerHeight / 2)
-							if (menuScrollTop > 0) {
-								const categoryN = categoriesOffset.find(({ offset }) => offset < menuScrollTop)
-								if (categoryN) categoryPath = categoryN.path
-							}
-							history.push(categoryPath)
-						},
-						{ ms: 400, onStart: true },
-					),
-				)
-			}
+			const pushToHistory = throttle(
+				(e: Event) => {
+					let categorySlug = ''
+					const target = e.target as HTMLDivElement
+					const menuScrollTop =
+						target.scrollTop - menuOffsetTop.current + Math.round(window.innerHeight / 2)
+					if (menuScrollTop > 0) {
+						const categoryN = categoriesOffset.find(({ offset }) => offset < menuScrollTop)
+						if (categoryN) categorySlug = categoryN.slug
+					}
+					setCategory(categorySlug)
+				},
+				{ ms: 60 },
+			)
 
-			const setMenuOffsetTop = () => {
-				const menuElement = menuRef.current
-				if (menuElement) {
-					menuOffsetTop.current = menuElement.offsetTop
-				}
-			}
+			const setMenuOffsetTop = throttle(
+				() => {
+					const menuElement = menuRef.current
+					if (menuElement) menuOffsetTop.current = menuElement.offsetTop
+				},
+				{ ms: 30, onStart: true },
+			)
 			setMenuOffsetTop()
-			window.addEventListener('resize', throttle(setMenuOffsetTop))
-		}, [glide, rootRef, setSpring])
+
+			window.addEventListener('resize', setMenuOffsetTop)
+			window.addEventListener('scroll', pushToHistory)
+			return () => {
+				window.removeEventListener('resize', setMenuOffsetTop)
+				window.removeEventListener('scroll', pushToHistory)
+			}
+		}, [categoriesOffset, setCategory])
 		return (
 			<div
 				css={css`
-					width: 625px;
+					max-width: 740px;
 				`}
 			>
 				<h2
@@ -267,6 +305,9 @@ const Menu = withContext(
 					css={css`
 						position: relative;
 						padding: 0 15px 0 30px;
+						@media (max-width: 760px) {
+							padding: 0;
+						}
 						& > *:not(*:nth-of-type(1)) {
 							${styles.border('bottom')}
 						}
@@ -280,26 +321,32 @@ const Menu = withContext(
 						css={css`
 							will-change: transform;
 							width: 4px;
-							height: 82px;
+							height: ${itemHeight - 18}px;
 							position: absolute;
 							top: 9px;
 							left: 20px;
+							@media (max-width: 760px) {
+								left: 0;
+							}
 							background: ${themeColors.orange};
 							border-radius: 2px;
 						`}
 					/>
-					{menu.map(({ category, items, path, defaultVariants }, n) => (
-						<MenuItemsContainer
-							key={path}
-							path={path}
-							category={category}
-							items={items}
-							defaultVariants={defaultVariants}
-							addItem={addItem}
-							glide={glide}
-							n={n}
-						/>
-					))}
+					{menu.length ? (
+						menu.map(({ name, pizzas, slug }, n) => (
+							<MenuItemsContainer
+								key={slug}
+								slug={slug}
+								name={name}
+								pizzas={pizzas}
+								addItem={addItem}
+								glide={glide}
+								n={n}
+							/>
+						))
+					) : (
+						<MenuStub />
+					)}
 				</div>
 			</div>
 		)

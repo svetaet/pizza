@@ -28,26 +28,29 @@ const Delivery = withContext(
 	([, { openCheckout }], props: DeliveryP) => ({ ...props, openCheckout }),
 	withContext(
 		userStateContext,
-		([{ postNumber }, { setPostNumber }], props) => ({
-			...props,
-			postNumber,
-			setPostNumber,
-		}),
+		([{ postNumber }, { setPostNumber }], props) => {
+			const postNumberOption = postNumber
+				? postalCodes.find(option => option.value === postNumber) || postalCodes[0]
+				: postalCodes[0]
+			return {
+				...props,
+				postNumberOption,
+				setPostNumber,
+			}
+		},
 		memo(props => {
+			const { postNumberOption } = props
 			const [type, setType] = useState<DeliveryT>('delivery')
-			const [postalCode, setPostalCode] = useState(() =>
-				props.postNumber
-					? postalCodes.find(option => option.value === props.postNumber) || postalCodes[0]
-					: postalCodes[0],
-			)
+
 			let totalPrice = props.totalPrice
-			if (type === 'delivery') totalPrice += postalCode.price
+			if (type === 'delivery') totalPrice += postNumberOption.price
 			return (
 				<>
 					{type === 'delivery' && (
 						<div
 							css={css`
 								margin-top: 15px;
+								padding: 10px 15px 0 15px;
 								${styles.border('top')};
 								& p {
 									margin: 0;
@@ -85,13 +88,10 @@ const Delivery = withContext(
 										margin: 5px 5px 0 0;
 									`}
 									name="postal-code"
-									value={postalCode.value}
+									value={postNumberOption.value}
 									onChange={e => {
-										const option = postalCodes.find(code => code.value === e.target.value)!
-										props.setPostNumber(
-											option.value !== postalCodes[0].value ? '' : option.value,
-										)
-										setPostalCode(option)
+										const value = e.target.value
+										props.setPostNumber(value === postalCodes[0].value ? '' : value)
 									}}
 								>
 									{postalCodes.map(({ value }) => (
@@ -105,7 +105,7 @@ const Delivery = withContext(
 										font-size: 18px;
 									`}
 								>
-									{formatPrice(postalCode.price)}
+									{formatPrice(postNumberOption.price)}
 								</p>
 							</div>
 						</div>
@@ -115,6 +115,7 @@ const Delivery = withContext(
 						css={css`
 							margin-top: 12px;
 							${styles.border('top')};
+							padding: 10px 15px 0 15px;
 							display: flex;
 							justify-content: space-between;
 							font-weight: bold;
@@ -177,8 +178,13 @@ const Delivery = withContext(
 											margin-top: 5px;
 										`}
 									>
-										<input onChange={changeType} checked={current} type="radio" />
-										<span>{option.name}</span>
+										<input
+											id={option.type}
+											onChange={changeType}
+											checked={current}
+											type="radio"
+										/>
+										<label htmlFor={option.type}>{option.name}</label>
 									</div>
 								</div>
 							)
@@ -205,7 +211,8 @@ const Delivery = withContext(
 						css={css`
 							margin: 10px auto;
 						`}
-						src={credit}
+						src={credit.src}
+						alt="credit cards"
 					/>
 					<Info type={type} />
 				</>

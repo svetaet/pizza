@@ -1,22 +1,20 @@
-import React, { memo, useCallback, useMemo, useRef } from 'react'
+import React, { memo, useCallback } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
-import ingredients from 'constants/extraIngredients'
 import basketContext from 'state/basket/basketContext'
+import { IngredientTypeT } from 'state/basket/createActions'
 import { BasketItemT } from 'components/Basket'
-import getDefaultIngredients from 'utils/getDefaultIngredients'
 import formatPrice from 'utils/formatPrice'
 import Dialog from 'components/Dialog'
-
 type ItemP = {
 	ingredient: string
 	price?: number
-	toggle: (current: boolean, ingredient: string) => void
+	toggle: (current: boolean, ingredient: string, type: 'omitted' | 'added') => void
 	added: boolean
+	type: 'omitted' | 'added'
 }
-const Item = memo<ItemP>(({ ingredient, price, toggle, added }) => {
-	const inputRef = useRef<HTMLInputElement>(null)
+const Item = memo<ItemP>(({ ingredient, price, toggle, added, type }) => {
 	return (
 		<div
 			css={css`
@@ -24,7 +22,7 @@ const Item = memo<ItemP>(({ ingredient, price, toggle, added }) => {
 				width: 200px;
 				display: flex;
 				align-items: center;
-				& > span {
+				& > label {
 					&::first-letter {
 						text-transform: uppercase;
 					}
@@ -37,44 +35,35 @@ const Item = memo<ItemP>(({ ingredient, price, toggle, added }) => {
 			`}
 		>
 			<input
-				ref={inputRef}
+				id={ingredient}
 				type="checkbox"
 				checked={added}
-				onChange={e => toggle(!e.target.checked, ingredient)}
+				onChange={() => toggle(added, ingredient, type)}
 			/>
-			<span
-				onClick={() => {
-					const checkbox = inputRef.current
-					if (checkbox) toggle(checkbox.checked, ingredient)
-				}}
-			>{`${ingredient}${price ? ' kr. ' + formatPrice(price) : ''}`}</span>
+			<label htmlFor={ingredient}>{`${ingredient}${
+				price ? ' kr. ' + formatPrice(price) : ''
+			}`}</label>
 		</div>
 	)
 })
 
 type IngredientsP = {
 	item: BasketItemT
-	addIngredient: (ingredient: string, id: number) => void
-	removeIngredient: (ingredient: string, id: number) => void
+	addIngredient: (ingredient: string, id: number, type: IngredientTypeT) => void
+	removeIngredient: (ingredient: string, id: number, type: IngredientTypeT) => void
 	closeIngredients: (id: number) => void
 }
 const Ingredients = memo<IngredientsP>(
 	({ item, addIngredient, removeIngredient, closeIngredients }) => {
-		const { category, id, name } = item
-
-		const defaultIngredients = useMemo(() => getDefaultIngredients({ category, name }), [
-			category,
-			name,
-		])
-
-		const extraIngredients = useMemo(
-			() => ingredients.filter(({ name }) => !defaultIngredients.includes(name)),
-			[defaultIngredients],
-		)
+		const { id, name, extras, defaults, omitted, added } = item
 
 		const toggle = useCallback(
-			(current: boolean, ingredient: string) =>
-				current ? removeIngredient(ingredient, id) : addIngredient(ingredient, id),
+			(current: boolean, ingredient: string, type: 'omitted' | 'added') => {
+				const condition = type === 'added' ? current : !current
+				condition
+					? removeIngredient(ingredient, id, type)
+					: addIngredient(ingredient, id, type)
+			},
 			[addIngredient, id, removeIngredient],
 		)
 
@@ -96,36 +85,47 @@ const Ingredients = memo<IngredientsP>(
 				>
 					<h3
 						css={css`
-							margin: 0;
+							margin: 0 0 5px 0;
 							text-align: center;
 						`}
 					>
 						{name}
 					</h3>
-					<h4>Fravælg tilbehør</h4>
-					<div>
-						{defaultIngredients.map(ingredient => (
-							<Item
-								key={ingredient}
-								ingredient={ingredient}
-								toggle={toggle}
-								added={item.ingredients.includes(ingredient)}
-							/>
-						))}
-					</div>
 
-					<h4>Tilføj tilbehør</h4>
-					<div>
-						{extraIngredients.map(({ name, price }) => (
-							<Item
-								key={name}
-								ingredient={name}
-								toggle={toggle}
-								added={item.ingredients.includes(name)}
-								price={price}
-							/>
-						))}
-					</div>
+					{Boolean(defaults.length) && (
+						<>
+							<h4>Fravælg tilbehør</h4>
+							<div>
+								{defaults.map(ingredient => (
+									<Item
+										key={ingredient}
+										ingredient={ingredient}
+										toggle={toggle}
+										type={'omitted'}
+										added={!omitted.includes(ingredient)}
+									/>
+								))}
+							</div>
+						</>
+					)}
+
+					{Boolean(extras.length) && (
+						<>
+							<h4>Tilføj tilbehør</h4>
+							<div>
+								{extras.map(({ name, price }) => (
+									<Item
+										key={name}
+										ingredient={name}
+										toggle={toggle}
+										type={'added'}
+										added={added.includes(name)}
+										price={price}
+									/>
+								))}
+							</div>
+						</>
+					)}
 				</div>
 			</Dialog>
 		)

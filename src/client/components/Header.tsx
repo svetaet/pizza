@@ -1,76 +1,97 @@
 import React, { memo } from 'react'
 import { css } from '@emotion/core'
+
 import logo from 'images/logo.png'
+import background from 'images/background.jpg'
+import useLazy from 'utils/useLazy'
+import styles from 'styles'
 
-export const headerHeight = 610
-
-const Header = memo(() => {
+const Header = memo<{ height: number }>(({ height }) => {
+	const [bgSrc] = useLazy(background)
+	const [logoSrc, loaded] = useLazy(logo)
 	return (
 		<div
 			css={css`
-				position: relative;
-				height: ${headerHeight}px;
-				margin-bottom: 80px;
-				@media (max-width: 900px) {
-					margin-bottom: 8vw;
-				}
+				position: absolute;
+				height: ${height}px;
+				width: 100%;
+
+				background-image: url(${bgSrc});
+				background-size: cover;
 			`}
 		>
-			<img
-				src={logo}
-				css={css`
-					width: 170px;
-					position: absolute;
-					left: 0;
-					top: 20px;
-				`}
-			/>
 			<div
 				css={css`
-					position: absolute;
-					right: 0;
+					position: relative;
+					height: 100%;
+					margin: 0 auto;
+					max-width: 1100px;
+					padding: 10px 10px 50px 10px;
+					box-sizing: border-box;
 					display: flex;
-					flex-wrap: wrap;
-					color: white;
-					max-width: calc(100% - 180px);
-					& > p {
-						margin-right: 20px;
-						font-size: 16px;
+					justify-content: space-between;
+					align-items: start;
+					@media (max-width: 600px) {
+						flex-direction: column;
 					}
 				`}
 			>
-				<p>
-					Den gennemsnitlige leveringstid er <b>20 &ndash; 30 min</b> &ensp;&rsaquo;
-				</p>
-				<p>
-					Åben i dag: <b>10.30&ndash;22.00</b> &ensp;&rsaquo;
-				</p>
+				<img
+					alt="logo"
+					src={logoSrc}
+					css={css`
+						filter: ${loaded ? 'none' : 'blur(9px)'};
+						width: 170px;
+					`}
+				/>
+				<div
+					css={css`
+						display: flex;
+						flex-wrap: wrap;
+						color: white;
+						& > p {
+							margin: 10px 20px 0 0;
+							shite-space: nowrap;
+							@media (max-width: 760px) {
+								margin-right: 0;
+								font-size: 14px;
+							}
+						}
+					`}
+				>
+					<p>
+						Den gennemsnitlige leveringstid er <b>20 &ndash; 30 min</b> &ensp;&rsaquo;
+					</p>
+					<p>
+						Åben i dag: <b>10.30&ndash;22.00</b> &ensp;&rsaquo;
+					</p>
+				</div>
+				<h1
+					css={css`
+						text-align: center;
+						padding: 10px 0;
+						background-color: white;
+						border-radius: 4px;
+						white-space: nowrap;
+						font-size: 72px;
+						color: #d6a1a2;
+						font-weight: bold;
+						line-height: 1.2;
+						position: absolute;
+						margin: 0;
+						bottom: 0;
+						left: 20px;
+						width: calc(100% - 40px);
+						transform: translateY(50%);
+						${styles.shadow};
+						@media (max-width: 900px) {
+							font-size: 7vw;
+						}
+					`}
+				>
+					LATINI PIZZA | SVINNINGE
+				</h1>
 			</div>
-			<h1
-				css={css`
-					text-align: center;
-					padding: 10px 0;
-					background-color: white;
-					border-radius: 4px;
-					white-space: nowrap;
-					font-size: 72px;
-					// color: rgba(168, 0, 13, 0.502);
-					color: #d6a1a2;
-					font-weight: bold;
-					line-height: 1.2;
-					position: absolute;
-					margin: 0;
-					bottom: 0;
-					width: 100%;
-					transform: translateY(50%);
-					box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-					@media (max-width: 900px) {
-						font-size: 8vw;
-					}
-				`}
-			>
-				LATINI PIZZA | SVINNINGE
-			</h1>
 		</div>
 	)
 })

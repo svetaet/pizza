@@ -55,11 +55,11 @@ type FieldP<T> = {
 const Field = memo(
 	<T extends number | string>({ name, type = 'text', value, onChange }: FieldP<T>) => (
 		<div>
-			<p>
+			<label htmlFor={name}>
 				{name + ': '}
 				<span>*</span>
-			</p>
-			<input type={type} value={value} onChange={e => onChange(e.target.value)} />
+			</label>
+			<input id={name} type={type} value={value} onChange={e => onChange(e.target.value)} />
 		</div>
 	),
 )
@@ -111,14 +111,14 @@ const Checkout = withContext(
 											align-items: center;
 											justify-content: space-between;
 											width: 250px;
-											& > p {
+											& > label {
 												margin: 0;
 												white-space: nowrap;
 											}
 											& > input {
 												display: block;
 												margin-left: 5px;
-												width: 130px;
+												width: 120px;
 											}
 										}
 										& span {

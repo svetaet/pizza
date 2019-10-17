@@ -1,8 +1,8 @@
-import React from 'react'
+import React, { memo } from 'react'
 
 import themeColors from 'themeColors'
 
-const Add = ({ size = 15 }) => (
+const Add = memo<{ size?: number }>(({ size = 15 }) => (
 	<svg viewBox="0 0 10 10" width={`${size}px`} height={`${size}px`}>
 		<line
 			x1="5"
@@ -23,6 +23,6 @@ const Add = ({ size = 15 }) => (
 			strokeLinecap="round"
 		/>
 	</svg>
-)
+))
 
 export default Add

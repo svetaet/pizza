@@ -28,6 +28,9 @@ module.exports = {
 				test: /\.(png|jpe?g|gif|jpg)$/i,
 				use: [
 					{
+						loader: 'lqip-loader',
+					},
+					{
 						loader: 'file-loader',
 					},
 				],

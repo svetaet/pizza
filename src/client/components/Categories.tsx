@@ -1,18 +1,22 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo } from 'react'
 import { css } from '@emotion/core'
-import { withRouter } from 'react-router-dom'
 
-import menu, { routes } from 'constants/menu'
 import styles from 'styles'
 import themeColors from 'themeColors'
+import CategoriesStub from 'components/CategoriesStub'
+
+type CategoryT = { name: string; slug: string }
+
+const scrollToCategory = (slug: string) => {
+	const anchor = document.getElementById(slug)
+	if (anchor) anchor.scrollIntoView({ behavior: 'smooth' })
+}
 
 type ItemP = {
-	path: string
-	category: string
+	category: CategoryT
 	current: boolean
-	scrollToCategory: (path: string) => void
 }
-const Item = memo<ItemP>(({ path, category, current, scrollToCategory }) => (
+const Item = memo<ItemP>(({ category, current }) => (
 	<p
 		css={css`
 			color: ${themeColors.weak};
@@ -21,8 +25,7 @@ const Item = memo<ItemP>(({ path, category, current, scrollToCategory }) => (
 		`}
 	>
 		<span
-			key={path}
-			onClick={() => scrollToCategory(path)}
+			onClick={() => scrollToCategory(category.slug)}
 			css={css`
 				line-height: 29px;
 				cursor: pointer;
@@ -35,63 +38,62 @@ const Item = memo<ItemP>(({ path, category, current, scrollToCategory }) => (
 					: ''}
 			`}
 		>
-			{category}
+			{category.name}
 		</span>
 	</p>
 ))
 
-const Categories = memo(
-	withRouter(({ location: { pathname } }) => {
-		const scrollToCategory = useCallback((path: string) => {
-			if (routes.includes(path)) {
-				const anchor = document.getElementById(path)
-				if (anchor) anchor.scrollIntoView({ behavior: 'smooth' })
-			}
-		}, [])
-		return (
-			<div
+type CategoriesP = {
+	categories: CategoryT[]
+	currentCategory: string
+}
+const Categories = memo<CategoriesP>(({ categories, currentCategory }) => {
+	return (
+		<div
+			css={css`
+				display: flex;
+				flex-direction: column;
+				min-width: 135px;
+				@media (max-width: 760px) {
+					padding-left: 10px;
+				}
+				${styles.sidebar}
+				${styles.scrollbar}
+			`}
+		>
+			<h2
 				css={css`
-					display: flex;
-					flex-direction: column;
-					// padding: 0 15px 0 0;
-					position: sticky;
-					top: 0;
-					min-width: 130px;
-					height: 100vh;
-					box-sizing: border-box;
-					${styles.scrollbar}
+					padding: 0 0 5px 0px;
+					margin: 0;
+					${styles.title};
 				`}
 			>
-				<h2
-					css={css`
-						padding: 0 0 5px 0px;
-						margin: 0;
-						${styles.title};
-					`}
-				>
-					Kategorier
-				</h2>
-				<div
-					css={css`
+				Kategorier
+			</h2>
+			<div
+				css={css`
+					@media (min-width: 761px) {
 						${styles.border('top', 'right')}
-						display: flex;
-						flex-direction: column;
-						padding: 0 15px 0 0;
-					`}
-				>
-					{menu.map(({ category, path }) => (
+					}
+					display: flex;
+					flex-direction: column;
+					padding: 0 15px 0 0;
+				`}
+			>
+				{categories.length ? (
+					categories.map(category => (
 						<Item
-							scrollToCategory={scrollToCategory}
-							key={path}
-							path={path}
+							key={category.slug}
 							category={category}
-							current={pathname === path}
+							current={currentCategory === category.slug}
 						/>
-					))}
-				</div>
+					))
+				) : (
+					<CategoriesStub />
+				)}
 			</div>
-		)
-	}),
-)
+		</div>
+	)
+})
 
 export default Categories

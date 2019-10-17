@@ -26,7 +26,6 @@ module.exports = merge(common, {
 		new HtmlPlugin({
 			favicon: 'src/client/favicon.png',
 			filename: '200.html',
-			title: 'SSR PRESET',
 			template: 'src/template.html',
 		}),
 		new BundleAnalyzerPlugin({

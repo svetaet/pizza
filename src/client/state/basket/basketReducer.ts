@@ -15,14 +15,20 @@ type BasketReducerT = (state: BasketItemT[], action: BasketStateActionT) => Bask
 const userStateReducer: BasketReducerT = (state, action) => {
 	switch (action.type) {
 		case ADD_ITEM:
-			return [...state, { dialogOpened: true, ...action.payload, id: getId() }]
+			return [
+				...state,
+				{ dialogOpened: true, omitted: [], added: [], ...action.payload, id: getId() },
+			]
 		case REMOVE_ITEM:
 			return state.filter(item => item.id !== action.payload)
 
 		case ADD_INGREDIENT:
 			return state.map(item =>
 				item.id === action.payload.id
-					? { ...item, ingredients: [...item.ingredients, action.payload.ingredient] }
+					? {
+							...item,
+							[action.payload.type]: [...item[action.payload.type], action.payload.ingredient],
+					  }
 					: item,
 			)
 		case REMOVE_INGREDIENT:
@@ -30,7 +36,7 @@ const userStateReducer: BasketReducerT = (state, action) => {
 				item.id === action.payload.id
 					? {
 							...item,
-							ingredients: item.ingredients.filter(
+							[action.payload.type]: item[action.payload.type].filter(
 								ingredient => ingredient !== action.payload.ingredient,
 							),
 					  }

@@ -10,13 +10,9 @@ import Delivery from 'components/Delivery'
 import styles from 'styles'
 import basketContext from 'state/basket/basketContext'
 import formatPrice from 'utils/formatPrice'
-import getDefaultIngredients from 'utils/getDefaultIngredients'
-import extraIngredientsArray from 'constants/extraIngredients'
+import themeColors from 'themeColors'
 
-const extraIngredientsPrices = Object.fromEntries(
-	extraIngredientsArray.map(item => [item.name, item.price]),
-)
-
+export type ExtraT = { name: string; price: number }
 export type BasketItemT = {
 	dialogOpened: boolean
 	id: number
@@ -24,14 +20,19 @@ export type BasketItemT = {
 	size: string
 	category: string
 	name: string
-	ingredients: string[]
+	defaults: string[]
+	extras: ExtraT[]
+	omitted: string[]
+	added: string[]
 }
 
 type StackedBasketItemT = BasketItemT & { ids: number[] }
 
 const equalIngredients = (item1: BasketItemT, item2: BasketItemT) =>
-	item1.ingredients.every(ingredient => item2.ingredients.includes(ingredient)) &&
-	item2.ingredients.every(ingredient => item1.ingredients.includes(ingredient))
+	item1.omitted.every(ingredient => item2.omitted.includes(ingredient)) &&
+	item2.omitted.every(ingredient => item1.omitted.includes(ingredient)) &&
+	item1.added.every(ingredient => item2.added.includes(ingredient)) &&
+	item2.added.every(ingredient => item1.added.includes(ingredient))
 
 export const equalItems = (item1: BasketItemT, item2: BasketItemT) =>
 	item1.category === item2.category &&
@@ -57,43 +58,28 @@ const Basket = memo(
 			}, [])
 
 			const items = stackedItems.map(item => {
-				const { category, ingredients, name } = item
-				let extraIngredientsPrice = 0
-				const extraIngredients: string[] = []
-				const removedIngredients: string[] = []
-				try {
-					const defaultIngredients = getDefaultIngredients({ category, name })
+				const extraIngredientsPrice = item.added.reduce(
+					(total, ingredient) =>
+						total + item.extras.find(({ name }) => ingredient === name)!.price,
+					0,
+				)
 
-					ingredients.forEach(ingredient => {
-						if (!defaultIngredients.includes(ingredient)) {
-							extraIngredientsPrice += extraIngredientsPrices[ingredient]
-							extraIngredients.push(ingredient)
-						}
-					})
-
-					defaultIngredients.forEach(ingredient => {
-						if (!ingredients.includes(ingredient)) removedIngredients.push(ingredient)
-					})
-				} catch (err) {
-					console.error(err)
-				}
 				const price = item.price + extraIngredientsPrice
 				totalPrice += price * item.ids.length
-				return { ...item, price, removedIngredients, extraIngredients }
+				return { ...item, price }
 			})
-
 			return (
 				<div
 					css={css`
 						display: flex;
 						flex-direction: column;
-						box-sizing: border-box;
-						position: sticky;
-						top: 0;
-						height: 100vh;
-						width: 260px;
+						width: 290px;
 						min-width: 232px;
+						${styles.sidebar}
 						${styles.scrollbar}
+						@media (max-width: 760px) {
+							padding-right: 10px;
+						}
 					`}
 				>
 					<h2
@@ -108,80 +94,89 @@ const Basket = memo(
 
 					<div
 						css={css`
-							${styles.border('top', 'left')}
-							padding: 0 0 0px 10px;
-							display: flex;
-							flex-direction: column;
-							& > div:not(:last-child) {
-								padding: 10px 15px 0 15px;
+							padding: 0 5px 0 15px;
+							@media (min-width: 761px) {
+								${styles.border('left')}
 							}
 						`}
 					>
-						{items.map(
-							({
-								ids,
-								id,
-								ingredients,
-								name,
-								price,
-								size,
-								category,
-								removedIngredients,
-								extraIngredients,
-							}) => {
-								return (
-									<Fragment key={id}>
-										<div
-											css={css`
-												display: flex;
-												justify-content: space-between;
-												& p {
-													margin: 0;
-													font-size: 14px;
-												}
-											`}
-										>
-											<p>{`${ids.length} x${category} ${name}(${size})`}</p>
+						<div
+							css={css`
+								@media (min-width: 761px) {
+									border-top: 1px solid ${themeColors.border};
+								}
+								padding: 0 0 10px 0;
+								display: flex;
+								flex-direction: column;
+							`}
+						>
+							{items.map(
+								({
+									ids,
+									id,
+									defaults,
+									extras,
+									omitted,
+									added,
+									name,
+									price,
+									size,
+									category,
+								}) => {
+									return (
+										<Fragment key={id}>
 											<div
 												css={css`
-													& > button {
-														border: none;
-														background: transparent;
-														padding: 0;
-														margin-left: 5px;
-														cursor: pointer;
-														font-size: 0;
-														outline: none;
-													}
-													margin-left: 5px;
-													font-weight: bold;
 													display: flex;
-													align-items: center;
+													justify-content: space-between;
+													padding: 10px 0 10px 15px;
+													& p {
+														margin: 0;
+														font-size: 14px;
+													}
 												`}
 											>
-												<p>{formatPrice(price * ids.length)}</p>
-												<button
-													onClick={() =>
-														addItem({
-															ingredients,
-															name,
-															price,
-															size,
-															category,
-															dialogOpened: false,
-														})
-													}
+												<p>{`${ids.length} x${category} ${name}(${size})`}</p>
+												<div
+													css={css`
+														& > button {
+															border: none;
+															background: transparent;
+															padding: 0;
+															margin-left: 5px;
+															cursor: pointer;
+															font-size: 0;
+															outline: none;
+														}
+														margin-left: 5px;
+														font-weight: bold;
+														display: flex;
+														align-items: center;
+													`}
 												>
-													<PlusIcon />
-												</button>
-												<button onClick={() => removeItem(lastOf(ids))}>
-													<MinusIcon />
-												</button>
+													<p>{formatPrice(price * ids.length)}</p>
+													<button
+														onClick={() =>
+															addItem({
+																defaults,
+																extras,
+																omitted,
+																added,
+																name,
+																price,
+																size,
+																category,
+																dialogOpened: false,
+															})
+														}
+													>
+														<PlusIcon />
+													</button>
+													<button onClick={() => removeItem(lastOf(ids))}>
+														<MinusIcon />
+													</button>
+												</div>
 											</div>
-										</div>
-										{[extraIngredients, removedIngredients].some(
-											ings => ings.length !== 0,
-										) && (
 											<div
 												css={css`
 													font-size: 12px;
@@ -190,29 +185,26 @@ const Basket = memo(
 													}
 												`}
 											>
-												{removedIngredients.map(ingredient => (
-													<p
-														css={css`
-															color: red;
-														`}
-														key={ingredient}
-													>{`- ${ingredient}`}</p>
-												))}
-												{extraIngredients.map(ingredient => (
-													<p
-														css={css`
-															color: green;
-														`}
-														key={ingredient}
-													>{`+ ${ingredient}`}</p>
-												))}
+												{[
+													{ ingredients: omitted, color: 'red' },
+													{ ingredients: added, color: 'green' },
+												].map(({ ingredients, color }) =>
+													ingredients.map(ingredient => (
+														<p
+															css={css`
+																color: ${color};
+															`}
+															key={ingredient}
+														>{`+ ${ingredient}`}</p>
+													)),
+												)}
 											</div>
-										)}
-									</Fragment>
-								)
-							},
-						)}
-						<Delivery totalPrice={totalPrice} />
+										</Fragment>
+									)
+								},
+							)}
+							<Delivery totalPrice={totalPrice} />
+						</div>
 					</div>
 				</div>
 			)
