@@ -11,6 +11,7 @@ import {
 	SET_CITY,
 	SET_PASSWORD,
 	SET_ORDER_NUMBER,
+	SET_DELIVERY_TYPE,
 } from './actionTypes'
 import { UserStateT } from './defaultUserState'
 
@@ -62,6 +63,10 @@ export type UserStateActionT =
 			type: typeof SET_ORDER_NUMBER
 			payload: string
 	  }
+	| {
+			type: typeof SET_DELIVERY_TYPE
+			payload: 'delivery' | 'pickup'
+	  }
 
 export type UserStateActionTypeT = UserStateActionT['type']
 
@@ -85,6 +90,8 @@ const actions = (dispatch: React.Dispatch<UserStateActionT>) => ({
 	setPassword: (newPassword: string) => dispatch({ type: SET_PASSWORD, payload: newPassword }),
 	setOrderNumber: (newOrderNumber: string) =>
 		dispatch({ type: SET_ORDER_NUMBER, payload: newOrderNumber }),
+	setDeliveryType: (type: 'delivery' | 'pickup') =>
+		dispatch({ type: SET_DELIVERY_TYPE, payload: type }),
 })
 
 export default actions

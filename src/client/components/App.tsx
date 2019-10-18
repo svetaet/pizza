@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState, useEffect, useMemo } from 'react'
+import React, { memo, useState, useEffect, useLayoutEffect, useMemo, useCallback } from 'react'
 import { css } from '@emotion/core'
 
 import Header from 'components/Header'
@@ -9,47 +9,57 @@ import Ingredients from 'components/Ingredients'
 import Checkout from 'components/Checkout'
 import AppBar, { OpenedT } from 'components/AppBar'
 import Sidebar from 'components/Sidebar'
+import Bottom from 'components/Bottom'
 import BasketProvider from 'state/basket/BasketProvider'
 import UserStateProvider from 'state/userState/UserStateProvider'
 import CheckoutProvider from 'state/checkout/CheckoutProvider'
-import useLazy from 'utils/useLazy'
 import useMedia from 'utils/useMedia'
+import api from 'utils/api'
+
+const scrollToCategory = (slug: string) => {
+	const anchor = document.getElementById(slug)
+	if (anchor) anchor.scrollIntoView({ behavior: 'smooth' })
+}
 
 const App = memo(() => {
-	const rootRef = useRef<HTMLDivElement>(null)
-	const mainRef = useRef<HTMLDivElement>(null)
 	const mobile = useMedia('(max-width:760px)')
 	const headerHeight = mobile ? 300 : 610
 
 	const [opened, setOpened] = useState<OpenedT>('menu')
 
-	const [category, setCategory] = useState('')
-
 	const [menu, setMenu] = useState<MenuT>([])
-	const categories = useMemo(() => menu.map(({ name, slug }) => ({ name, slug })), [menu])
-	const [error, setError] = useState(false)
-	console.log(menu, categories)
 	useEffect(() => {
-		const getMenu = async () => {
-			try {
-				const result = await fetch('https://latini.heshe.dk/public/api/menu')
-				if (!result.ok) throw new Error('Server error')
-				const menu = (await result.json()) as MenuT
-				setMenu(menu)
-			} catch (err) {
-				console.error(err)
-				setError(true)
-			}
-		}
-		getMenu()
+		api<MenuT>({ endpoint: 'menu', onSuccess: setMenu })
 	}, [])
+
+	const categories = useMemo(() => menu.map(({ name, slug }) => ({ name, slug })), [menu])
+	const [category, setCategory] = useState('')
+	const categoryN = category === '' ? 0 : categories.findIndex(item => item.slug === category)
+	const [renderedCategories, setRenderedCategories] = useState(0)
+	useLayoutEffect(() => {
+		if (categoryN > renderedCategories) setRenderedCategories(categoryN)
+	}, [categoryN, renderedCategories])
+
+	const [scroll, setScroll] = useState('')
+	useEffect(() => {
+		if (scroll) {
+			scrollToCategory(scroll)
+			setScroll('')
+		}
+	}, [scroll])
+	const setCategoryAndScroll = useCallback(
+		(slug: string, n: number) => {
+			if (n > renderedCategories) setRenderedCategories(n)
+			setScroll(slug)
+		},
+		[renderedCategories],
+	)
 
 	return (
 		<CheckoutProvider>
 			<BasketProvider>
 				<UserStateProvider>
 					<div
-						ref={rootRef}
 						css={css`
 							position: relative;
 							width: 100%;
@@ -61,7 +71,6 @@ const App = memo(() => {
 					>
 						<Header height={headerHeight} />
 						<div
-							ref={mainRef}
 							css={css`
 								margin-top: ${mobile
 									? `calc(${headerHeight + 10}px + 7vw)`
@@ -80,22 +89,31 @@ const App = memo(() => {
 								<>
 									<AppBar opened={opened} setOpened={setOpened}>
 										<Sidebar opened={opened === 'categories'} side={'left'}>
-											<Categories categories={categories} currentCategory={category} />
+											<Categories
+												setCategory={setCategoryAndScroll}
+												categories={categories}
+												currentCategory={category}
+											/>
 										</Sidebar>
 										<Sidebar opened={opened === 'basket'} side={'right'}>
 											<Basket />
 										</Sidebar>
 									</AppBar>
-									<Menu setCategory={setCategory} menu={menu} />
+									<Menu setCategory={setCategory} menu={menu} categoryN={renderedCategories} />
 								</>
 							) : (
 								<>
-									<Categories categories={categories} currentCategory={category} />
-									<Menu setCategory={setCategory} menu={menu} />
+									<Categories
+										categories={categories}
+										setCategory={setCategoryAndScroll}
+										currentCategory={category}
+									/>
+									<Menu setCategory={setCategory} menu={menu} categoryN={renderedCategories} />
 									<Basket />
 								</>
 							)}
 						</div>
+						<Bottom />
 					</div>
 					<Ingredients />
 					<Checkout />

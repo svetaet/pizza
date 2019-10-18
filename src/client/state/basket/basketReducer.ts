@@ -8,16 +8,19 @@ import {
 import { BasketItemT } from 'components/Basket'
 import { BasketStateActionT } from './createActions'
 
-let i = 0
-const getId = () => i++
-
 type BasketReducerT = (state: BasketItemT[], action: BasketStateActionT) => BasketItemT[]
 const userStateReducer: BasketReducerT = (state, action) => {
 	switch (action.type) {
 		case ADD_ITEM:
 			return [
 				...state,
-				{ dialogOpened: true, omitted: [], added: [], ...action.payload, id: getId() },
+				{
+					dialogOpened: true,
+					omitted: [],
+					added: [],
+					...action.payload,
+					id: state.reduce((max, { id }) => Math.max(id, max), 0) + 1,
+				},
 			]
 		case REMOVE_ITEM:
 			return state.filter(item => item.id !== action.payload)

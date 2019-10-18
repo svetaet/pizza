@@ -36,9 +36,10 @@ const Dialog: FC<{ close: () => void; innerCss?: string }> = ({
 				border-radius: 20px;
 				border: solid 1px ${themeColors.weak};
 				max-width: 600px;
-				@media (max-width: 640px) {
-					max-width: calc(100vw - 120px);
+				@media (max-width: 600px) {
+					max-width: 100%;
 				}
+				box-sizing: border-box;
 				padding: 20px;
 				margin: auto;
 				background: white;

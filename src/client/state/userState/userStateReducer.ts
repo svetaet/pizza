@@ -11,6 +11,7 @@ import {
 	SET_CITY,
 	SET_PASSWORD,
 	SET_ORDER_NUMBER,
+	SET_DELIVERY_TYPE,
 } from './actionTypes'
 import { UserStateT } from './defaultUserState'
 
@@ -44,6 +45,8 @@ const userStateReducer: UserStateReducerT = (state, { type, payload }) => {
 			return { ...state, password: payload }
 		case SET_ORDER_NUMBER:
 			return { ...state, orderNumber: payload }
+		case SET_DELIVERY_TYPE:
+			return { ...state, deliveryType: payload }
 		default:
 			if (process.env.NODE_ENV === 'development')
 				throw new Error(

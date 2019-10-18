@@ -70,6 +70,9 @@ const MenuItem: FC<MenuItemP> = ({
 				height: ${itemHeight}px;
 				justify-content: space-between;
 				padding: 13px 15px 13px 45px;
+				@media (max-width: 900px) {
+					padding: 13px 5px 13px 20px;
+				}
 				@media (max-width: 760px) {
 					padding: 13px 15px 13px 15px;
 				}
@@ -119,8 +122,7 @@ const MenuItem: FC<MenuItemP> = ({
 					>
 						<div
 							css={css`
-								width: 110px;
-								min-width: 110px;
+								width: 100%;
 								display: flex;
 								justify-content: space-between;
 								align-items: center;
@@ -156,7 +158,7 @@ const MenuItem: FC<MenuItemP> = ({
 							}}
 							css={css`
 								margin-left: 30px;
-								@media (max-width: 760px) {
+								@media (max-width: 900px) {
 									margin-left: 10px;
 								}
 								cursor: pointer;
@@ -221,10 +223,14 @@ const MenuItemsContainer = memo<MenuItemsContainerP>(
 )
 
 const initialTop = categoryHeight
-const Menu: FC<{ menu: MenuT; setCategory: (slug: string) => void }> = withContext(
+const Menu: FC<{
+	menu: MenuT
+	categoryN: number
+	setCategory: (slug: string) => void
+}> = withContext(
 	basketContext,
 	([, { addItem }], props) => ({ addItem, ...props }),
-	memo(({ addItem, menu, setCategory }) => {
+	memo(({ addItem, menu, setCategory, categoryN }) => {
 		const [spring, setSpring] = useSpring(() => ({ top: initialTop }))
 
 		const getTop = useCallback(
@@ -254,11 +260,10 @@ const Menu: FC<{ menu: MenuT; setCategory: (slug: string) => void }> = withConte
 
 		useEffect(() => {
 			const pushToHistory = throttle(
-				(e: Event) => {
+				() => {
 					let categorySlug = ''
-					const target = e.target as HTMLDivElement
 					const menuScrollTop =
-						target.scrollTop - menuOffsetTop.current + Math.round(window.innerHeight / 2)
+						window.scrollY - menuOffsetTop.current + Math.round(window.innerHeight / 2)
 					if (menuScrollTop > 0) {
 						const categoryN = categoriesOffset.find(({ offset }) => offset < menuScrollTop)
 						if (categoryN) categorySlug = categoryN.slug
@@ -287,7 +292,9 @@ const Menu: FC<{ menu: MenuT; setCategory: (slug: string) => void }> = withConte
 		return (
 			<div
 				css={css`
+					width: 100%;
 					max-width: 740px;
+					min-width: 300px;
 				`}
 			>
 				<h2
@@ -333,17 +340,19 @@ const Menu: FC<{ menu: MenuT; setCategory: (slug: string) => void }> = withConte
 						`}
 					/>
 					{menu.length ? (
-						menu.map(({ name, pizzas, slug }, n) => (
-							<MenuItemsContainer
-								key={slug}
-								slug={slug}
-								name={name}
-								pizzas={pizzas}
-								addItem={addItem}
-								glide={glide}
-								n={n}
-							/>
-						))
+						menu
+							.slice(0, categoryN + 2)
+							.map(({ name, pizzas, slug }, n) => (
+								<MenuItemsContainer
+									key={slug}
+									slug={slug}
+									name={name}
+									pizzas={pizzas}
+									addItem={addItem}
+									glide={glide}
+									n={n}
+								/>
+							))
 					) : (
 						<MenuStub />
 					)}

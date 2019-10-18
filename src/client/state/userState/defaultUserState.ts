@@ -10,6 +10,7 @@ export interface UserStateT {
 	city: string
 	password: string
 	orderNumber: string
+	deliveryType: 'delivery' | 'pickup'
 }
 
 const defaultUserState: UserStateT = {
@@ -23,6 +24,7 @@ const defaultUserState: UserStateT = {
 	postNumber: '',
 	city: '',
 	password: '',
+	deliveryType: 'delivery',
 	orderNumber: '',
 }
 

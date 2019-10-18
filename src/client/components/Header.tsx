@@ -80,8 +80,8 @@ const Header = memo<{ height: number }>(({ height }) => {
 						position: absolute;
 						margin: 0;
 						bottom: 0;
-						left: 20px;
-						width: calc(100% - 40px);
+						left: 10px;
+						width: calc(100% - 20px);
 						transform: translateY(50%);
 						${styles.shadow};
 						@media (max-width: 900px) {

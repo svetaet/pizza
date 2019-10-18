@@ -1,4 +1,4 @@
-import React, { memo, useState } from 'react'
+import React, { memo } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
@@ -28,19 +28,20 @@ const Delivery = withContext(
 	([, { openCheckout }], props: DeliveryP) => ({ ...props, openCheckout }),
 	withContext(
 		userStateContext,
-		([{ postNumber }, { setPostNumber }], props) => {
+		([{ postNumber, deliveryType }, { setPostNumber, setDeliveryType }], props) => {
 			const postNumberOption = postNumber
 				? postalCodes.find(option => option.value === postNumber) || postalCodes[0]
 				: postalCodes[0]
 			return {
 				...props,
+				deliveryType,
 				postNumberOption,
 				setPostNumber,
+				setDeliveryType,
 			}
 		},
 		memo(props => {
-			const { postNumberOption } = props
-			const [type, setType] = useState<DeliveryT>('delivery')
+			const { postNumberOption, deliveryType: type, setDeliveryType: setType } = props
 
 			let totalPrice = props.totalPrice
 			if (type === 'delivery') totalPrice += postNumberOption.price
@@ -192,18 +193,12 @@ const Delivery = withContext(
 					</div>
 
 					<button
+						className={props.totalPrice ? '' : 'disabled'}
 						css={css`
-							color: white;
-							background: #79df26;
-							border: none;
+							${styles.button}
 							margin: 0 15px;
-							padding: 10px;
-							display: block;
-							text-transform: uppercase;
-							cursor: pointer;
-							font-size: 16px;
 						`}
-						onClick={props.openCheckout}
+						onClick={() => props.totalPrice && props.openCheckout()}
 					>
 						{'gå til kassen'}
 					</button>

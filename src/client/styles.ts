@@ -88,4 +88,19 @@ export default {
 		background: #eeeeee;
 		border-radius: 5px;
 	`,
+	button: css`
+		color: white;
+		background: #79df26;
+		border: none;
+		margin: 0 auto;
+		padding: 10px;
+		display: block;
+		text-transform: uppercase;
+		cursor: pointer;
+		font-size: 16px;
+		&.disabled {
+			cursor: unset;
+			background: #c9c9c9;
+		}
+	`,
 }

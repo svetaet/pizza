@@ -18,8 +18,6 @@ const CategoryStub: FC = ({ children }) => (
 		css={css`
 			box-sizing: border-box;
 			padding: 20px 15px 13px 13px;
-			width: 100vw;
-			max-width: 650px;
 			height: ${categoryHeight}px;
 		`}
 	>
@@ -32,8 +30,6 @@ const ItemStub: FC = ({ children }) => (
 		css={css`
 			padding: 13px 15px 13px 45px;
 			box-sizing: border-box;
-			width: 100vw;
-			max-width: 500px;
 			height: ${itemHeight}px;
 		`}
 	>

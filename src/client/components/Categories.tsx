@@ -6,17 +6,13 @@ import themeColors from 'themeColors'
 import CategoriesStub from 'components/CategoriesStub'
 
 type CategoryT = { name: string; slug: string }
-
-const scrollToCategory = (slug: string) => {
-	const anchor = document.getElementById(slug)
-	if (anchor) anchor.scrollIntoView({ behavior: 'smooth' })
-}
-
 type ItemP = {
 	category: CategoryT
 	current: boolean
+	setCategory: (slug: string, n: number) => void
+	n: number
 }
-const Item = memo<ItemP>(({ category, current }) => (
+const Item = memo<ItemP>(({ category, current, setCategory, n }) => (
 	<p
 		css={css`
 			color: ${themeColors.weak};
@@ -25,7 +21,7 @@ const Item = memo<ItemP>(({ category, current }) => (
 		`}
 	>
 		<span
-			onClick={() => scrollToCategory(category.slug)}
+			onClick={() => setCategory(category.slug, n)}
 			css={css`
 				line-height: 29px;
 				cursor: pointer;
@@ -46,8 +42,9 @@ const Item = memo<ItemP>(({ category, current }) => (
 type CategoriesP = {
 	categories: CategoryT[]
 	currentCategory: string
+	setCategory: (slug: string, n: number) => void
 }
-const Categories = memo<CategoriesP>(({ categories, currentCategory }) => {
+const Categories = memo<CategoriesP>(({ categories, setCategory, currentCategory }) => {
 	return (
 		<div
 			css={css`
@@ -81,11 +78,13 @@ const Categories = memo<CategoriesP>(({ categories, currentCategory }) => {
 				`}
 			>
 				{categories.length ? (
-					categories.map(category => (
+					categories.map((category, n) => (
 						<Item
 							key={category.slug}
 							category={category}
+							setCategory={setCategory}
 							current={currentCategory === category.slug}
+							n={n}
 						/>
 					))
 				) : (

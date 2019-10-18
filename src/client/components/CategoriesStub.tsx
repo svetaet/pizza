@@ -1,4 +1,4 @@
-import React, { Fragment, FC } from 'react'
+import React, { FC } from 'react'
 import { css } from '@emotion/core'
 
 import styles from 'styles'

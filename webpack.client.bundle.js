@@ -25,7 +25,7 @@ module.exports = merge(common, {
 		new webpack.HashedModuleIdsPlugin(),
 		new HtmlPlugin({
 			favicon: 'src/client/favicon.png',
-			filename: '200.html',
+			filename: 'index.html',
 			template: 'src/template.html',
 		}),
 		new BundleAnalyzerPlugin({

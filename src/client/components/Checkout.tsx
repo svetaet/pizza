@@ -1,11 +1,16 @@
-import React, { memo, Fragment } from 'react'
+import React, { memo, Fragment, useCallback } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
 import Dialog from 'components/Dialog'
+import basketContext from 'state/basket/basketContext'
 import checkoutContext from 'state/checkout/checkoutContext'
 import userStateContext, { UserStateContextT } from 'state/userState/userStateContext'
 import themeColors from 'themeColors'
+import styles from 'styles'
+import api from 'utils/api'
+import getOrderDetails from 'utils/getOrderDetails'
+import { BasketItemT } from 'components/Basket'
 
 const getFields = (user: UserStateContextT[0], actions: UserStateContextT[1]) => [
 	[
@@ -30,20 +35,16 @@ const getFields = (user: UserStateContextT[0], actions: UserStateContextT[1]) =>
 		},
 		{ name: 'By', value: user.city, onChange: actions.setCity },
 	],
-	[
-		{
-			name: 'Adgangskode',
-			value: user.firstName,
-			onChange: actions.setFirstName,
-			type: 'password',
-		},
-		{
-			name: 'Bekræft',
-			value: user.firstName,
-			onChange: actions.setFirstName,
-			type: 'password',
-		},
-	],
+	// [
+	// 	{
+	// 		name: 'Adgangskode',
+	// 		type: 'password',
+	// 	},
+	// 	{
+	// 		name: 'Bekræft',
+	// 		type: 'password',
+	// 	},
+	// ],
 ]
 
 type FieldP<T> = {
@@ -65,78 +66,147 @@ const Field = memo(
 )
 
 const Checkout = withContext(
-	userStateContext,
-	([userState, actions], props: { close: () => void }) => ({ userState, actions, ...props }),
-	props => {
-		const { userState: user, actions, close } = props
-		const [data, address, password] = getFields(user, actions)
-		return (
-			<Dialog
-				close={close}
-				innerCss={`& > div { background: #f9f9f9; padding: 20px 30px; width: 520px; }`}
-			>
-				{[
-					{ name: 'Mine informationer', fieldsSets: [data, address] },
-					{ name: 'Adganskode', fieldsSets: [password] },
-				].map(({ name, fieldsSets }) => (
-					<Fragment key={name}>
-						<h4
-							css={css`
-								color: ${themeColors.weak};
-								margin: 0 0 10px 0;
-							`}
-						>
-							{name}
-						</h4>
-						<div
-							css={css`
-								display: flex;
-								flex-wrap: wrap;
-								justify-content: space-between;
-								border-bottom: solid 1px #cccccc;
-								padding-bottom: 10px;
-								margin-bottom: 10px;
-							`}
-						>
-							{fieldsSets.map((fields, n) => (
-								<div
-									key={n}
-									css={css`
-										display: flex;
-										flex-wrap: wrap;
-										flex-direction: column;
-										& > div {
-											margin: 3px 0;
+	basketContext,
+	([basket], props: { close: () => void }) => ({ basket, ...props }),
+	withContext(
+		userStateContext,
+		([userState, actions], props) => ({ userState, actions, ...props }),
+		props => {
+			const { userState: user, basket, actions, close } = props
+			const [data, address] = getFields(user, actions)
+			const fieldSets = [data]
+			if (props.userState.deliveryType === 'delivery') fieldSets.push(address)
+
+			const disable = fieldSets.some(fields => fields.some(field => !field.value))
+
+			const makeOrder = useCallback((user: UserStateContextT[0], basket: BasketItemT[]) => {
+				const { items, totalPrice } = getOrderDetails(basket)
+				const orderDetails = items.reduce(
+					(acc, item) =>
+						acc +
+						`${item.ids.length} x ${item.category} ${item.name}(${item.size})${
+							item.omitted.length ? ' - ' + item.omitted.join(' - ') : ''
+						}${item.added.length ? ' + ' + item.added.join(' + ') : ''},`,
+					'',
+				)
+				console.log(orderDetails)
+
+				api<{}>({
+					endpoint: 'order',
+					onSuccess: console.log,
+					body: {
+						firstname: user.firstName,
+						lastname: user.lastName,
+						phone: user.phoneNumber,
+						mail: user.email,
+						address: `${user.street} ${user.homeNumber}`,
+						postal_code: user.postNumber,
+						city: user.city,
+						remarks: '',
+						status: 0,
+						orderDetails: orderDetails,
+						orderTotal: totalPrice,
+						deliveryType: user.deliveryType,
+						printed: 0,
+					},
+				})
+			}, [])
+
+			return (
+				<Dialog
+					close={close}
+					innerCss={`
+						& > div { 
+							background: #f9f9f9;
+							padding: 20px 30px;
+							@media (max-width: 760px) {
+								padding: 20px;
+							}
+						}
+					`}
+				>
+					{[
+						{ name: 'Mine informationer', fieldSets },
+						// { name: 'Adganskode', fieldSets: [password] },
+					].map(({ name, fieldSets }) => (
+						<Fragment key={name}>
+							<h4
+								css={css`
+									color: ${themeColors.weak};
+									margin: 0 0 10px 0;
+								`}
+							>
+								{name}
+							</h4>
+							<div
+								css={css`
+									display: flex;
+									flex-wrap: wrap;
+									justify-content: space-between;
+									border-bottom: solid 1px #cccccc;
+									padding-bottom: 10px;
+									margin-bottom: 10px;
+								`}
+							>
+								{fieldSets.map((fields, n) => (
+									<div
+										key={n}
+										css={css`
 											display: flex;
-											align-items: center;
-											justify-content: space-between;
-											width: 250px;
-											& > label {
-												margin: 0;
-												white-space: nowrap;
+											flex-wrap: wrap;
+											flex-direction: column;
+											width: 100%;
+											max-width: 250px;
+											& > div {
+												margin: 3px 0;
+												display: flex;
+												align-items: center;
+												justify-content: space-between;
+												width: 100%;
+												& > label {
+													margin: 0;
+													white-space: nowrap;
+												}
+												& > input {
+													display: block;
+													margin-left: 5px;
+													width: 120px;
+												}
 											}
-											& > input {
-												display: block;
-												margin-left: 5px;
-												width: 120px;
+											& span {
+												color: red;
 											}
-										}
-										& span {
-											color: red;
-										}
-									`}
-								>
-									{fields.map(props => (
-										<Field key={props.name} {...props} />
-									))}
-								</div>
-							))}
-						</div>
-					</Fragment>
-				))}
-			</Dialog>
-		)
-	},
+										`}
+									>
+										{fields.map(props => (
+											<Field key={props.name} {...props} />
+										))}
+									</div>
+								))}
+							</div>
+						</Fragment>
+					))}
+
+					<p
+						css={css`
+							margin: 0 0 10px 0;
+							text-align: center;
+							color: ${themeColors.weak};
+						`}
+					>
+						{'Order number: '}
+					</p>
+					<button
+						onClick={() => makeOrder(user, basket)}
+						className={disable ? 'disabled' : ''}
+						css={styles.button}
+					>
+						GENNERFØR BETALING
+					</button>
+				</Dialog>
+			)
+		},
+	),
 )
 
 const OpenedCheckout = withContext(
@@ -146,16 +216,3 @@ const OpenedCheckout = withContext(
 )
 
 export default OpenedCheckout
-// {
-// 				closeCheckout,
-// 				setLastName,
-// 				setCity,
-// 				setEmail,
-// 				setPassword,
-// 				setStreet,
-// 				setFirstName,
-// 				setHomeNumber,
-// 				setOrderNumber,
-// 				setPhoneNumber,
-// 				setPostNumber,
-// 			},
