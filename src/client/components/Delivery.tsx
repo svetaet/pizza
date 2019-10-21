@@ -15,7 +15,7 @@ type DeliveryT = 'delivery' | 'pickup'
 
 const postalCodes = [{ value: 'Postnr.', price: 0 }, { value: '4300', price: 40 }]
 
-const deliveryOptions = [
+export const deliveryOptions = [
 	{ type: 'delivery' as DeliveryT, icon: DeliveryBike, name: 'Levering' },
 	{ type: 'pickup' as DeliveryT, icon: Bag, name: 'Afhentning' },
 ]
@@ -45,6 +45,8 @@ const Delivery = withContext(
 
 			let totalPrice = props.totalPrice
 			if (type === 'delivery') totalPrice += postNumberOption.price
+
+			const disable = type === 'delivery' ? props.totalPrice < 250 : props.totalPrice === 0
 			return (
 				<>
 					{type === 'delivery' && (
@@ -135,7 +137,7 @@ const Delivery = withContext(
 							{formatPrice(totalPrice)}
 						</p>
 					</div>
-					{type === 'delivery' && (
+					{type === 'delivery' && disable && (
 						<p
 							css={css`
 								font-size: 12px;
@@ -193,12 +195,12 @@ const Delivery = withContext(
 					</div>
 
 					<button
-						className={props.totalPrice ? '' : 'disabled'}
+						className={disable ? 'disabled' : ''}
 						css={css`
 							${styles.button}
 							margin: 0 15px;
 						`}
-						onClick={() => props.totalPrice && props.openCheckout()}
+						onClick={disable ? undefined : props.openCheckout}
 					>
 						{'gå til kassen'}
 					</button>

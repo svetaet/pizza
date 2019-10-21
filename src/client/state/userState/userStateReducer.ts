@@ -12,6 +12,7 @@ import {
 	SET_PASSWORD,
 	SET_ORDER_NUMBER,
 	SET_DELIVERY_TYPE,
+	SET_ORDER_ID,
 } from './actionTypes'
 import { UserStateT } from './defaultUserState'
 
@@ -45,6 +46,8 @@ const userStateReducer: UserStateReducerT = (state, { type, payload }) => {
 			return { ...state, password: payload }
 		case SET_ORDER_NUMBER:
 			return { ...state, orderNumber: payload }
+		case SET_ORDER_ID:
+			return { ...state, orderId: payload }
 		case SET_DELIVERY_TYPE:
 			return { ...state, deliveryType: payload }
 		default:

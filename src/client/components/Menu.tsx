@@ -11,7 +11,6 @@ import MenuStub from 'components/MenuStub'
 import styles from 'styles'
 import themeColors from 'themeColors'
 import formatPrice from 'utils/formatPrice'
-import getDefaultIngredients from 'utils/getDefaultIngredients'
 
 export type IngredientT = {
 	id: string
@@ -27,6 +26,7 @@ export type ItemT = {
 	deep_price?: number
 	fam_price?: number
 	extras: IngredientT[]
+	topping: IngredientT[]
 }
 
 export type CategoryT = {
@@ -47,10 +47,12 @@ type MenuItemP = {
 	hoverHandler: (n: number) => void
 	n: number
 	addItem: AddItemWrapT
-} & Omit<ItemT, 'id'>
+} & ItemT
 
 const MenuItem: FC<MenuItemP> = ({
 	extras,
+	topping: defaults,
+	id: backendId,
 	name,
 	price,
 	deep_price,
@@ -146,8 +148,8 @@ const MenuItem: FC<MenuItemP> = ({
 						</div>
 						<div
 							onClick={() => {
-								const defaults = getDefaultIngredients(description)
 								addItem({
+									backendId,
 									name,
 									size,
 									defaults,
@@ -203,20 +205,24 @@ const MenuItemsContainer = memo<MenuItemsContainerP>(
 				>
 					{category}
 				</h1>
-				{items.map(({ name, price, deep_price, fam_price, description, extras }, n) => (
-					<MenuItem
-						key={name}
-						name={name}
-						extras={extras}
-						price={price}
-						deep_price={deep_price}
-						fam_price={fam_price}
-						description={description}
-						hoverHandler={hoverHandler}
-						addItem={addItemWrap}
-						n={n}
-					/>
-				))}
+				{items.map(
+					({ name, price, deep_price, fam_price, description, extras, topping, id }, n) => (
+						<MenuItem
+							key={name}
+							name={name}
+							id={id}
+							extras={extras}
+							topping={topping}
+							price={price}
+							deep_price={deep_price}
+							fam_price={fam_price}
+							description={description}
+							hoverHandler={hoverHandler}
+							addItem={addItemWrap}
+							n={n}
+						/>
+					),
+				)}
 			</>
 		)
 	},

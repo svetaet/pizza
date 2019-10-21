@@ -27,7 +27,10 @@ const BasketProvider = memo(props => {
 	}, [basket])
 
 	const actions = useMemo(() => createActions(dispatch), [])
-	const value: BasketContextT = useMemo(() => [basket, actions], [basket, actions])
+	const value: BasketContextT = useMemo(() => {
+		const openedItems = basket.filter(item => item.dialogOpened)
+		return [basket, actions, openedItems]
+	}, [basket, actions])
 	return <BasketContext.Provider value={value} {...props} />
 })
 

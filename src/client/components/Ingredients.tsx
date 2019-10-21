@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react'
+import React, { memo, useCallback, useMemo } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
@@ -7,6 +7,7 @@ import { IngredientTypeT } from 'state/basket/createActions'
 import { BasketItemT } from 'components/Basket'
 import formatPrice from 'utils/formatPrice'
 import Dialog from 'components/Dialog'
+
 type ItemP = {
 	ingredient: string
 	price?: number
@@ -30,7 +31,9 @@ const Item = memo<ItemP>(({ ingredient, price, toggle, added, type }) => {
 				}
 				& > input {
 					cursor: pointer;
-					margin-right: 3px;
+					margin: 2px 2px 0 3px;
+					height: 15px;
+					width: 15px;
 				}
 			`}
 		>
@@ -48,14 +51,15 @@ const Item = memo<ItemP>(({ ingredient, price, toggle, added, type }) => {
 })
 
 type IngredientsP = {
-	item: BasketItemT
-	addIngredient: (ingredient: string, id: number, type: IngredientTypeT) => void
-	removeIngredient: (ingredient: string, id: number, type: IngredientTypeT) => void
-	closeIngredients: (id: number) => void
+	items: BasketItemT[]
+	addIngredient: (ingredient: string, id: number | number[], type: IngredientTypeT) => void
+	removeIngredient: (ingredient: string, id: number | number[], type: IngredientTypeT) => void
+	closeIngredients: (id: number | number[]) => void
 }
 const Ingredients = memo<IngredientsP>(
-	({ item, addIngredient, removeIngredient, closeIngredients }) => {
-		const { id, name, extras, defaults, omitted, added } = item
+	({ items, addIngredient, removeIngredient, closeIngredients }) => {
+		const { name, extras, defaults, omitted, added } = items[0]
+		const id = useMemo(() => items.map(it => it.id), [items])
 
 		const toggle = useCallback(
 			(current: boolean, ingredient: string, type: 'omitted' | 'added') => {
@@ -69,7 +73,7 @@ const Ingredients = memo<IngredientsP>(
 
 		const close = () => closeIngredients(id)
 		return (
-			<Dialog close={close}>
+			<Dialog close={close} okButton>
 				<div
 					onClick={e => e.stopPropagation()}
 					css={css`
@@ -79,7 +83,7 @@ const Ingredients = memo<IngredientsP>(
 							margin-bottom: 5px;
 						}
 						& > h4 {
-							margin: 0 0 0 5px;
+							margin: 0 0 5px 5px;
 						}
 					`}
 				>
@@ -92,24 +96,24 @@ const Ingredients = memo<IngredientsP>(
 						{name}
 					</h3>
 
-					{Boolean(defaults.length) && (
+					{defaults.length > 0 && (
 						<>
 							<h4>Fravælg tilbehør</h4>
 							<div>
-								{defaults.map(ingredient => (
+								{defaults.map(({ name }) => (
 									<Item
-										key={ingredient}
-										ingredient={ingredient}
+										key={name}
+										ingredient={name}
 										toggle={toggle}
 										type={'omitted'}
-										added={!omitted.includes(ingredient)}
+										added={!omitted.includes(name)}
 									/>
 								))}
 							</div>
 						</>
 					)}
 
-					{Boolean(extras.length) && (
+					{extras.length > 0 && (
 						<>
 							<h4>Tilføj tilbehør</h4>
 							<div>
@@ -134,13 +138,18 @@ const Ingredients = memo<IngredientsP>(
 
 const OpenedItem = withContext(
 	basketContext,
-	([basket, { addIngredient, removeIngredient, closeIngredients }]) => ({
-		addIngredient,
-		removeIngredient,
-		closeIngredients,
-		item: basket.find(item => item.dialogOpened),
-	}),
-	props => (props.item ? <Ingredients {...props} item={props.item} /> : null),
+	([, { addIngredient, removeIngredient, closeIngredients }, openedItems]) => {
+		return {
+			addIngredient,
+			removeIngredient,
+			closeIngredients,
+			items: openedItems,
+		}
+	},
+	props =>
+		props.items.length ? (
+			<Ingredients key={props.items.map(item => item.id).join(',')} {...props} />
+		) : null,
 )
 
 export default OpenedItem

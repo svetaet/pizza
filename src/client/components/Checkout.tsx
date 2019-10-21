@@ -1,4 +1,4 @@
-import React, { memo, Fragment, useCallback } from 'react'
+import React, { memo, Fragment, useCallback, useMemo, useEffect } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 
@@ -10,7 +10,7 @@ import themeColors from 'themeColors'
 import styles from 'styles'
 import api from 'utils/api'
 import getOrderDetails from 'utils/getOrderDetails'
-import { BasketItemT } from 'components/Basket'
+import { deliveryOptions } from 'components/Delivery'
 
 const getFields = (user: UserStateContextT[0], actions: UserStateContextT[1]) => [
 	[
@@ -73,50 +73,95 @@ const Checkout = withContext(
 		([userState, actions], props) => ({ userState, actions, ...props }),
 		props => {
 			const { userState: user, basket, actions, close } = props
-			const [data, address] = getFields(user, actions)
-			const fieldSets = [data]
-			if (props.userState.deliveryType === 'delivery') fieldSets.push(address)
+			const fieldSets = getFields(user, actions)
+			// const [data, address] = getFields(user, actions)
+			// const fieldSets = [data]
+			// if (props.userState.deliveryType === 'delivery') fieldSets.push(address)
 
 			const disable = fieldSets.some(fields => fields.some(field => !field.value))
 
-			const makeOrder = useCallback((user: UserStateContextT[0], basket: BasketItemT[]) => {
-				const { items, totalPrice } = getOrderDetails(basket)
-				const orderDetails = items.reduce(
-					(acc, item) =>
-						acc +
-						`${item.ids.length} x ${item.category} ${item.name}(${item.size})${
-							item.omitted.length ? ' - ' + item.omitted.join(' - ') : ''
-						}${item.added.length ? ' + ' + item.added.join(' + ') : ''},`,
-					'',
-				)
-				console.log(orderDetails)
+			const { items, totalPrice } = useMemo(() => getOrderDetails(basket), [basket])
+			const makeOrder = useCallback(
+				async (user: UserStateContextT[0]) => {
+					const orderDetails = items
+						.map(
+							item =>
+								`${item.ids.length} x ${item.category} ${item.name}(${item.size})${
+									item.omitted.length ? ' - ' + item.omitted.join(' - ') : ''
+								}${item.added.length ? ' + ' + item.added.join(' + ') : ''}`,
+						)
+						.join(', ')
 
-				api<{}>({
-					endpoint: 'order',
-					onSuccess: console.log,
-					body: {
-						firstname: user.firstName,
-						lastname: user.lastName,
-						phone: user.phoneNumber,
-						mail: user.email,
-						address: `${user.street} ${user.homeNumber}`,
-						postal_code: user.postNumber,
-						city: user.city,
-						remarks: '',
-						status: 0,
-						orderDetails: orderDetails,
-						orderTotal: totalPrice,
-						deliveryType: user.deliveryType,
-						printed: 0,
-					},
-				})
-			}, [])
+					const orderInfo = basket.map(({ added, omitted, backendId }) => ({
+						id: backendId,
+						extra: [...omitted.map(i => `${i}`), ...added.map(i => `+${i}`)].join('\n'),
+					}))
+
+					await api<{ id: string }>({
+						endpoint: 'order',
+						onSuccess: ({ id }) => {
+							actions.setOrderId(id)
+							// eslint-disable-next-line no-undef
+							const paymentwindow = new PaymentWindow({
+								merchantnumber: '8031528',
+								amount: totalPrice.toFixed(2).replace('.', ''),
+								currency: 'DKK',
+								windowstate: '4',
+								paymentcollection: '1',
+								iframeheight: '341',
+								iframewidth: '100%',
+								language: '1',
+							})
+							paymentwindow.append('payment-div')
+							paymentwindow.open()
+						},
+						body: {
+							firstname: user.firstName,
+							lastname: user.lastName,
+							phone: user.phoneNumber,
+							mail: user.email,
+							address: `${user.street} ${user.homeNumber}`,
+							postal_code: user.postNumber,
+							city: user.city,
+							remarks: '',
+							status: 0,
+							orderDetails,
+							orderInfo,
+							orderTotal: totalPrice,
+							deliveryType: deliveryOptions.find(({ type }) => type === user.deliveryType)!
+								.name,
+							printed: 0,
+						},
+					})
+				},
+				[actions, items, totalPrice, basket],
+			)
+
+			useEffect(() => {
+				if (user.orderId) {
+					const timer = setInterval(
+						() =>
+							api<{ status: number }>({
+								endpoint: `order/${user.orderId}`,
+								onSuccess: data => {
+									console.log(data)
+									if (data.status !== 0) clearInterval(timer)
+								},
+								onError: () => clearInterval(timer),
+							}),
+						3000,
+					)
+
+					return () => clearInterval(timer)
+				}
+			}, [user.orderId])
 
 			return (
 				<Dialog
 					close={close}
 					innerCss={`
 						& > div { 
+    					width: 585px;
 							background: #f9f9f9;
 							padding: 20px 30px;
 							@media (max-width: 760px) {
@@ -187,32 +232,48 @@ const Checkout = withContext(
 						</Fragment>
 					))}
 
-					<p
+					{user.orderNumber ? (
+						<p
+							css={css`
+								margin: 10px 0 0 0;
+								text-align: center;
+								color: ${themeColors.weak};
+							`}
+						>
+							{`Order number: ${user.orderNumber}`}
+						</p>
+					) : (
+						<button
+							onClick={() => makeOrder(user)}
+							css={styles.button}
+							className={disable ? 'disabled' : ''}
+						>
+							GENNERFØR BETALING
+						</button>
+					)}
+
+					<div
 						css={css`
-							margin: 0 0 10px 0;
-							text-align: center;
-							color: ${themeColors.weak};
+							margin: 10px 0 0 0;
+							overflow: auto;
+							& iframe {
+								min-width: 316px;
+							}
 						`}
-					>
-						{'Order number: '}
-					</p>
-					<button
-						onClick={() => makeOrder(user, basket)}
-						className={disable ? 'disabled' : ''}
-						css={styles.button}
-					>
-						GENNERFØR BETALING
-					</button>
+						id="payment-div"
+					></div>
 				</Dialog>
 			)
 		},
 	),
 )
 
-const OpenedCheckout = withContext(
-	checkoutContext,
-	([opened, { closeCheckout }]) => ({ opened, close: closeCheckout }),
-	({ opened, close }) => (opened ? <Checkout close={close} /> : null),
+const OpenedCheckout = memo(
+	withContext(
+		checkoutContext,
+		([opened, { closeCheckout }]) => ({ opened, close: closeCheckout }),
+		({ opened, close }) => (opened ? <Checkout close={close} /> : null),
+	),
 )
 
 export default OpenedCheckout

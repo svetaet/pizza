@@ -98,6 +98,8 @@ export default {
 		text-transform: uppercase;
 		cursor: pointer;
 		font-size: 16px;
+		text-align: center;
+		text-decoration: none;
 		&.disabled {
 			cursor: unset;
 			background: #c9c9c9;

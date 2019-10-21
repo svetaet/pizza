@@ -1,4 +1,4 @@
-import React, { memo, Fragment } from 'react'
+import React, { memo } from 'react'
 import { css } from '@emotion/core'
 import { withContext } from '@rqm/react-tools'
 import { lastOf } from '@rqm/tools'
@@ -13,16 +13,17 @@ import formatPrice from 'utils/formatPrice'
 import getOrderDetails from 'utils/getOrderDetails'
 import themeColors from 'themeColors'
 
-export type ExtraT = { name: string; price: number }
+export type IngredientT = { name: string; price: number }
 export type BasketItemT = {
 	dialogOpened: boolean
 	id: number
+	backendId: string
 	price: number
 	size: string
 	category: string
 	name: string
-	defaults: string[]
-	extras: ExtraT[]
+	defaults: IngredientT[]
+	extras: IngredientT[]
 	omitted: string[]
 	added: string[]
 }
@@ -30,8 +31,13 @@ export type BasketItemT = {
 const Basket = memo(
 	withContext(
 		basketContext,
-		([basket, { removeItem, addItem }]) => ({ removeItem, addItem, basket }),
-		({ removeItem, addItem, basket }) => {
+		([basket, { removeItem, addItem, openIngredients }]) => ({
+			removeItem,
+			addItem,
+			basket,
+			openIngredients,
+		}),
+		({ removeItem, addItem, openIngredients, basket }) => {
 			const { items, totalPrice } = getOrderDetails(basket)
 			return (
 				<div
@@ -39,7 +45,7 @@ const Basket = memo(
 						display: flex;
 						flex-direction: column;
 						width: 290px;
-						min-width: 232px;
+						min-width: 255px;
 						${styles.sidebar}
 						${styles.scrollbar}
 						@media (max-width: 760px) {
@@ -59,7 +65,7 @@ const Basket = memo(
 
 					<div
 						css={css`
-							padding: 0 5px 0 15px;
+							padding: 0 0 0 15px;
 							@media (min-width: 761px) {
 								${styles.border('left')}
 							}
@@ -79,6 +85,7 @@ const Basket = memo(
 								({
 									ids,
 									id,
+									backendId,
 									defaults,
 									extras,
 									omitted,
@@ -89,19 +96,31 @@ const Basket = memo(
 									category,
 								}) => {
 									return (
-										<Fragment key={id}>
+										<div
+											css={css`
+												cursor: pointer;
+												background-color: white;
+												transition: background-color 0.2s;
+												border-radius: 5px;
+												&:hover {
+													background-color: #e9e9e9;
+												}
+											`}
+											key={id}
+											onClick={() => openIngredients(ids)}
+										>
 											<div
 												css={css`
 													display: flex;
 													justify-content: space-between;
-													padding: 10px 0 10px 15px;
+													padding: 10px 5px 10px 15px;
 													& p {
 														margin: 0;
 														font-size: 14px;
 													}
 												`}
 											>
-												<p>{`${ids.length} x${category} ${name}(${size})`}</p>
+												<p>{`${ids.length} x ${category} ${name} (${size})`}</p>
 												<div
 													css={css`
 														& > button {
@@ -118,6 +137,7 @@ const Basket = memo(
 														display: flex;
 														align-items: center;
 													`}
+													onClick={e => e.stopPropagation()}
 												>
 													<p>{formatPrice(price * ids.length)}</p>
 													<button
@@ -131,6 +151,7 @@ const Basket = memo(
 																price,
 																size,
 																category,
+																backendId,
 																dialogOpened: false,
 															})
 														}
@@ -144,28 +165,28 @@ const Basket = memo(
 											</div>
 											<div
 												css={css`
-													font-size: 12px;
-													padding-left: 15px;
+													font-size: 13px;
+													padding: 0 0 10px 15px;
 													& > p {
 														margin: 0 3px;
 													}
 												`}
 											>
 												{[
-													{ ingredients: omitted, color: 'red' },
-													{ ingredients: added, color: 'green' },
-												].map(({ ingredients, color }) =>
+													{ ingredients: omitted, color: 'red', sign: '-' },
+													{ ingredients: added, color: 'green', sign: '+' },
+												].map(({ ingredients, color, sign }) =>
 													ingredients.map(ingredient => (
 														<p
 															css={css`
 																color: ${color};
 															`}
 															key={ingredient}
-														>{`+ ${ingredient}`}</p>
+														>{`${sign} ${ingredient}`}</p>
 													)),
 												)}
 											</div>
-										</Fragment>
+										</div>
 									)
 								},
 							)}

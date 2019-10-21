@@ -2,7 +2,7 @@ import React, { createContext } from 'react'
 import createActions from './createActions'
 import { BasketItemT } from 'components/Basket'
 
-export type BasketContextT = [BasketItemT[], ReturnType<typeof createActions>]
+export type BasketContextT = [BasketItemT[], ReturnType<typeof createActions>, BasketItemT[]]
 const BasketContext: React.Context<BasketContextT> = createContext(
 	([] as unknown) as BasketContextT,
 )
